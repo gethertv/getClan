@@ -1,0 +1,4 @@
+name: getClans
+version: '${project.version}'
+main: dev.gether.getclans.GetClans
+api-version: 1.16
