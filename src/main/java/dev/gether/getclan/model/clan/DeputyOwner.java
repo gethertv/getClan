@@ -1,2 +1,11 @@
-package dev.gether.getclan.model.clan;public class DeputyOwner {
+package dev.gether.getclan.model.clan;
+
+import dev.gether.getclan.model.Clan;
+import org.bukkit.entity.Player;
+
+public class DeputyOwner extends ClanMember{
+
+    public DeputyOwner(Player player, Clan clan) {
+        super(player, clan);
+    }
 }

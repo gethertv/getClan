@@ -1,4 +1,4 @@
-package dev.gether.getclans.event;
+package dev.gether.getclan.event;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;

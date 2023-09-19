@@ -1,59 +1,71 @@
-package dev.gether.getclans;
+package dev.gether.getclan;
 
-import dev.gether.getclans.config.CommandConfigurator;
-import dev.gether.getclans.manager.ClansManager;
-import dev.gether.getclans.cmd.GetClansCmd;
-import dev.gether.getclans.config.Config;
-import dev.gether.getclans.database.MySQL;
-import dev.gether.getclans.handler.InvalidUsage;
-import dev.gether.getclans.handler.PermissionMessage;
-import dev.gether.getclans.listener.PlayerConnectionListener;
-import dev.gether.getclans.listener.PlayerDeathListener;
-import dev.gether.getclans.service.QueueService;
-import dev.gether.getclans.placeholder.StatsPoints;
-import dev.gether.getclans.scheduler.AutoSave;
-import dev.gether.getclans.service.ClanService;
-import dev.gether.getclans.service.UserService;
-import dev.gether.getclans.manager.UserManager;
+import dev.gether.getclan.bstats.Metrics;
+import dev.gether.getclan.cmd.argument.ClanTagArgument;
+import dev.gether.getclan.cmd.argument.OwnerArgument;
+import dev.gether.getclan.handler.*;
+import dev.gether.getclan.handler.contextual.DeputyOwnerContextual;
+import dev.gether.getclan.handler.contextual.MemberContextual;
+import dev.gether.getclan.handler.contextual.OwnerContextual;
+import dev.gether.getclan.listener.AsyncPlayerChatListener;
+import dev.gether.getclan.listener.EntityDamageListener;
+import dev.gether.getclan.manager.ClanManager;
+import dev.gether.getclan.cmd.GetClanCmd;
+import dev.gether.getclan.config.Config;
+import dev.gether.getclan.database.MySQL;
+import dev.gether.getclan.listener.PlayerConnectionListener;
+import dev.gether.getclan.listener.PlayerDeathListener;
+import dev.gether.getclan.model.Clan;
+import dev.gether.getclan.model.clan.DeputyOwner;
+import dev.gether.getclan.model.clan.Member;
+import dev.gether.getclan.model.clan.Owner;
+import dev.gether.getclan.service.QueueService;
+import dev.gether.getclan.placeholder.ClanPlaceholder;
+import dev.gether.getclan.service.ClanService;
+import dev.gether.getclan.service.UserService;
+import dev.gether.getclan.manager.UserManager;
+import dev.gether.getclan.utils.MessageUtil;
 import dev.rollczi.litecommands.LiteCommands;
 import dev.rollczi.litecommands.bukkit.LiteBukkitFactory;
 import dev.rollczi.litecommands.bukkit.tools.BukkitOnlyPlayerContextual;
+import dev.rollczi.litecommands.bukkit.tools.BukkitPlayerArgument;
+import dev.rollczi.litecommands.platform.LiteSender;
 import eu.okaeri.configs.ConfigManager;
 import eu.okaeri.configs.yaml.bukkit.YamlBukkitConfigurer;
-import eu.okaeri.configs.yaml.bukkit.serdes.SerdesBukkit;
+import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitScheduler;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
 import java.util.stream.Stream;
 
-public final class GetClans extends JavaPlugin {
+public final class GetClan extends JavaPlugin {
 
 
-    private static GetClans instance;
+    private static GetClan instance;
+    private Economy economy;
 
     // manager
     private UserManager userManager;
-    private ClansManager clansManager;
+    private ClanManager clansManager;
 
     // service
     private ClanService clanService;
     private UserService userService;
     private QueueService queueService;
-
     private MySQL mySQL;
 
     private Config config;
 
     private LiteCommands<CommandSender> liteCommands;
 
-    private StatsPoints statsPoints;
+    private ClanPlaceholder clanPlaceholder;
+
     @Override
     public void onLoad() {
 
@@ -71,6 +83,12 @@ public final class GetClans extends JavaPlugin {
 
         instance = this;
 
+        if (!setupEconomy() ) {
+            getServer().getLogger().severe(String.format("[%s] - Disabled due to no Vault dependency found!", getDescription().getName()));
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+
         // initialize mysql
         mySQL = new MySQL(this);
 
@@ -79,7 +97,7 @@ public final class GetClans extends JavaPlugin {
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
-        statsPoints = new StatsPoints(this);
+        clanPlaceholder = new ClanPlaceholder(this);
 
         // serivce
         queueService = new QueueService(this, mySQL);
@@ -89,7 +107,7 @@ public final class GetClans extends JavaPlugin {
 
         // manager
         userManager = new UserManager(this, userService);
-        clansManager = new ClansManager(this, clanService);
+        clansManager = new ClanManager(this, clanService);
 
         // load data form database
         loadDataMySQL();
@@ -97,44 +115,32 @@ public final class GetClans extends JavaPlugin {
         // listeners
         Stream.of(
                 new PlayerConnectionListener(this),
-                new PlayerDeathListener(this)
+                new PlayerDeathListener(this),
+                new EntityDamageListener(this),
+                new AsyncPlayerChatListener(this)
         ).forEach(listener -> getServer().getPluginManager().registerEvents(listener, this));
+
 
 
         // scheduler
         BukkitScheduler scheduler = Bukkit.getScheduler();
 
-        AutoSave autoSave = new AutoSave(this);
-        scheduler.runTaskTimerAsynchronously(this, autoSave, 20L * 300, 20L * 300);
-
+        // save data (5MIN)
+        scheduler.runTaskTimerAsynchronously(this, () -> queueService.execute(),20L * 60 * 5, 20L * 60 * 5);
 
         // register cmd
         registerCmd();
 
 
+        Metrics metrics = new Metrics(this, 19808);
+
     }
 
-    private void loadDataMySQL() {
-
-        clanService.loadClans();
-        userService.loadUsers();
-
-        new BukkitRunnable() {
-
-            @Override
-            public void run() {
-                for(Player player : Bukkit.getOnlinePlayers())
-                    userManager.loadUser(player);
-            }
-        }.runTaskAsynchronously(this);
-    }
 
     @Override
     public void onDisable() {
 
         this.liteCommands.getPlatform().unregisterAll();
-
-        this.getLogger().info("Disabled!");
 
         if (mySQL != null) {
             queueService.execute();
@@ -143,32 +149,74 @@ public final class GetClans extends JavaPlugin {
         }
 
 
-        if(statsPoints!=null)
-            statsPoints.unregister();
+        if(clanPlaceholder!=null)
+            clanPlaceholder.unregister();
 
         HandlerList.unregisterAll(this);
         Bukkit.getScheduler().cancelTasks(this);
     }
 
+    public void reloadPlugin(LiteSender sender)
+    {
+        config.load();
+
+        MessageUtil.sendMessage(sender, "&aPomyslnie przeladowano plugin!");
+    }
+
+    private boolean setupEconomy() {
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            return false;
+        }
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        if (rsp == null) {
+            return false;
+        }
+        economy = rsp.getProvider();
+        return economy != null;
+    }
+    private void loadDataMySQL() {
+
+        clanService.loadClans();
+        userService.loadUsers();
+        clanService.loadAlliances();
+
+        BukkitScheduler scheduler = Bukkit.getScheduler();
+        scheduler.runTaskAsynchronously(this, () -> Bukkit.getOnlinePlayers().forEach(player -> userManager.loadUser(player)));
+    }
+
+
     public void registerCmd()
     {
 
-        this.liteCommands = LiteBukkitFactory.builder(this.getServer(), "getClan")
-                // Arguments
-                .contextualBind(Player.class, new BukkitOnlyPlayerContextual<>("&cKomenda tylko dla gracza!"))
+        this.liteCommands = LiteBukkitFactory.builder(this.getServer(), "getclan")
                 .commandInstance(
-                        new GetClansCmd(this)
+                        new GetClanCmd(this)
                 )
-                .permissionHandler(new PermissionMessage())
-                .invalidUsageHandler(new InvalidUsage())
-                .commandGlobalEditor(new CommandConfigurator())
+
+                // contextual bind
+                .contextualBind(Owner.class, new OwnerContextual(this))
+                .contextualBind(DeputyOwner.class, new DeputyOwnerContextual(this))
+                .contextualBind(Member.class, new MemberContextual(this))
+                .contextualBind(Player.class, new BukkitOnlyPlayerContextual<>(config.langPlayerNotOnline))
+
+
+                // args
+                .argument(Player.class, new BukkitPlayerArgument<>(this.getServer(), config.langPlayerNotOnline))
+                .argument(Clan.class, new ClanTagArgument(config, clansManager))
+                .argument(Owner.class, new OwnerArgument(config, userManager))
+
+                // handlers
+                .permissionHandler(new PermissionMessage(config))
+                .invalidUsageHandler(new InvalidUsage(config))
+
                 .register();
+
     }
     public Config getConfigPlugin()
     {
         return config;
     }
-    public static GetClans getInstance() {
+    public static GetClan getInstance() {
         return instance;
     }
 
@@ -177,19 +225,15 @@ public final class GetClans extends JavaPlugin {
     }
 
 
-    public ClanService getClanService() {
-        return clanService;
-    }
-
-    public QueueService getQueueService() {
-        return queueService;
-    }
-
     public UserService getUserService() {
         return userService;
     }
 
-    public ClansManager getClansManager() {
+    public Economy getEconomy() {
+        return economy;
+    }
+
+    public ClanManager getClansManager() {
         return clansManager;
     }
 }

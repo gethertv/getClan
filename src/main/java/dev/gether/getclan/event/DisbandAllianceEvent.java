@@ -5,13 +5,13 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
-public class DeleteAllianceEvent extends Event {
+public class DisbandAllianceEvent extends Event {
 
     private static final HandlerList HANDLERS = new HandlerList();
     private final Clan firstClan;
     private final Clan secondClan;
     private boolean isCancelled;
-    public DeleteAllianceEvent(Clan firstClan, Clan secondClan) {
+    public DisbandAllianceEvent(Clan firstClan, Clan secondClan) {
         this.firstClan = firstClan;
         this.secondClan = secondClan;
         this.isCancelled = false;

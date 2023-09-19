@@ -1,4 +1,4 @@
-package dev.gether.getclans.config;
+package dev.gether.getclan.config;
 
 import eu.okaeri.configs.OkaeriConfig;
 import eu.okaeri.configs.annotation.Comment;

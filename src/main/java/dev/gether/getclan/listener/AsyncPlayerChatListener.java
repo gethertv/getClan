@@ -1,10 +1,7 @@
-package dev.gether.getclan.handler;
+package dev.gether.getclan.listener;
 
 import dev.gether.getclan.GetClan;
 import dev.gether.getclan.config.Config;
-import dev.gether.getclan.config.ConfigPlugin;
-import dev.gether.getclan.manager.ClanManager;
-import dev.gether.getclan.manager.UserManager;
 import dev.gether.getclan.model.Clan;
 import dev.gether.getclan.model.User;
 import dev.gether.getclan.utils.MessageUtil;
@@ -15,10 +12,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
-public class AsyncPlayerChatListener implements Listener, ConfigPlugin {
+public class AsyncPlayerChatListener implements Listener {
 
     private GetClan plugin;
-
     private Config config;
 
     public AsyncPlayerChatListener(GetClan plugin){
@@ -72,8 +68,4 @@ public class AsyncPlayerChatListener implements Listener, ConfigPlugin {
 
     }
 
-    @Override
-    public void setConfig(Config config) {
-        this.config = config;
-    }
 }

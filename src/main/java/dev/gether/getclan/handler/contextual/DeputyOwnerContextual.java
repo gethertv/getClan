@@ -1,12 +1,10 @@
-package dev.gether.getclan.handler;
+package dev.gether.getclan.handler.contextual;
 
 import dev.gether.getclan.GetClan;
 import dev.gether.getclan.config.Config;
-import dev.gether.getclan.config.ConfigPlugin;
 import dev.gether.getclan.manager.UserManager;
 import dev.gether.getclan.model.User;
 import dev.gether.getclan.model.clan.DeputyOwner;
-import dev.gether.getclan.model.clan.Owner;
 import dev.rollczi.litecommands.command.Invocation;
 import dev.rollczi.litecommands.contextual.Contextual;
 import org.bukkit.command.CommandSender;
@@ -14,7 +12,7 @@ import org.bukkit.entity.Player;
 import panda.std.Option;
 import panda.std.Result;
 
-public class DeputyOwnerContextual implements Contextual<CommandSender, DeputyOwner>, ConfigPlugin {
+public class DeputyOwnerContextual implements Contextual<CommandSender, DeputyOwner> {
 
 
     private GetClan plugin;
@@ -48,8 +46,4 @@ public class DeputyOwnerContextual implements Contextual<CommandSender, DeputyOw
     }
 
 
-    @Override
-    public void setConfig(Config config) {
-        this.config = config;
-    }
 }

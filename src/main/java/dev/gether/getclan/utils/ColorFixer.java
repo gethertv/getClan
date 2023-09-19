@@ -1,4 +1,4 @@
-package dev.gether.getclans.utils;
+package dev.gether.getclan.utils;
 
 import net.md_5.bungee.api.ChatColor;
 
@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 public class ColorFixer {
 
 
-    static Pattern pattern = Pattern.compile("\\{#[a-fA-F0-9]{6}\\}");
+    static Pattern pattern = Pattern.compile("#[a-fA-F0-9]{6}");
 
     public static java.util.List<String> addColors(List<String> input) {
         if (input == null || input.isEmpty()) {
@@ -23,30 +23,11 @@ public class ColorFixer {
     }
     public static String addColors(String text)
     {
-        Matcher matcher = pattern.matcher(text);
-
-        StringBuilder result = new StringBuilder();
-        int lastEnd = 0;
-        int lastStart = 0;
-        Color lastColor = null;
-        while (matcher.find()) {
-            result.append(text, lastEnd, matcher.start());
-            lastEnd = matcher.end();
-
-            String colorString = matcher.group().substring(1, matcher.group().length() - 1);
-            Color color = Color.decode(colorString);
-
-            if (matcher.group().charAt(1) == '/') {
-                result.append(hsvGradient(text.substring(lastStart, matcher.start()), lastColor, color));
-            } else {
-                lastStart = matcher.end();
-                lastColor = color;
-            }
+        for (Matcher matcher = pattern.matcher(text); matcher.find(); matcher = pattern.matcher(text)) {
+            String color = text.substring(matcher.start(), matcher.end());
+            text = text.replace(color, net.md_5.bungee.api.ChatColor.of(color) + "");
         }
-        result.append(text, lastEnd, text.length());
-        String x = org.bukkit.ChatColor.translateAlternateColorCodes('&', result.toString());
-
-        return x;
+        return ChatColor.translateAlternateColorCodes('&', text);
     }
     public static String hsvGradient(String str, Color from, Color to) {
         final float[] hsvFrom = Color.RGBtoHSB(from.getRed(), from.getGreen(), from.getBlue(), null);

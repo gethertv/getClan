@@ -1,7 +1,7 @@
-package dev.gether.getclans.database;
+package dev.gether.getclan.database;
 
-import dev.gether.getclans.GetClans;
-import dev.gether.getclans.config.MySqlConfig;
+import dev.gether.getclan.GetClan;
+import dev.gether.getclan.config.MySqlConfig;
 import eu.okaeri.configs.ConfigManager;
 import eu.okaeri.configs.yaml.bukkit.YamlBukkitConfigurer;
 import eu.okaeri.configs.yaml.bukkit.serdes.SerdesBukkit;
@@ -17,7 +17,7 @@ import java.util.logging.Level;
 
 public class MySQL {
 
-    private final GetClans plugin;
+    private final GetClan plugin;
     private MySqlConfig mySqlConfig;
 
     private String host;
@@ -30,8 +30,9 @@ public class MySQL {
 
     private String tableUsers = "get_clan_users";
     private String tableClans = "get_clans";
+    private String tableAlliance = "get_alliance";
 
-    public MySQL(GetClans plugin) {
+    public MySQL(GetClan plugin) {
         this.plugin = plugin;
         loadConfig();
         setupMysql();
@@ -84,8 +85,9 @@ public class MySQL {
         try {
             String createClansTable = "CREATE TABLE IF NOT EXISTS " + tableClans + " ("
                     + "id INT(10) AUTO_INCREMENT PRIMARY KEY,"
-                    + "tag VARCHAR(100),"
-                    + "owner_name VARCHAR(60))";
+                    + "tag VARCHAR(10),"
+                    + "owner_uuid VARCHAR(100),"
+                    + "deputy_uuid VARCHAR(100))";
 
             String createUsersTable = "CREATE TABLE IF NOT EXISTS " + tableUsers + " ("
                     + "id INT(10) AUTO_INCREMENT PRIMARY KEY,"
@@ -96,9 +98,15 @@ public class MySQL {
                     + "points INT(11) DEFAULT 0,"
                     + "clan_tag VARCHAR(100))";
 
+
+            String createAllianceTable = "CREATE TABLE IF NOT EXISTS " + tableAlliance + " ("
+                    + "clan_tag1 VARCHAR(20),"
+                    + "clan_tag2 VARCHAR(20))";
+
             Statement stmt = connection.createStatement();
             stmt.execute(createClansTable);
             stmt.execute(createUsersTable);
+            stmt.execute(createAllianceTable);
             stmt.close();
         } catch (SQLException e) {
             plugin.getLogger().log(Level.SEVERE, "Nie można stworzyć tabeli!", e);
@@ -142,5 +150,9 @@ public class MySQL {
 
     public String getTableUsers() {
         return tableUsers;
+    }
+
+    public String getTableAlliance() {
+        return tableAlliance;
     }
 }

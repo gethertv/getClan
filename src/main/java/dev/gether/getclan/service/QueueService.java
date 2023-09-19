@@ -1,10 +1,11 @@
-package dev.gether.getclans.service;
+package dev.gether.getclan.service;
 
-import dev.gether.getclans.GetClans;
-import dev.gether.getclans.database.MySQL;
-import dev.gether.getclans.model.QueuedQuery;
-import dev.gether.getclans.model.User;
-import dev.gether.getclans.manager.UserManager;
+import dev.gether.getclan.GetClan;
+import dev.gether.getclan.database.MySQL;
+import dev.gether.getclan.model.QueuedQuery;
+import dev.gether.getclan.model.User;
+import dev.gether.getclan.manager.UserManager;
+import dev.gether.getclan.utils.ConsoleColor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -18,11 +19,11 @@ import java.util.Queue;
 public class QueueService {
 
 
-    private final GetClans plugin;
+    private final GetClan plugin;
     private Queue<QueuedQuery> queryQueue = new LinkedList<>();
 
     private MySQL mySQL;
-    public QueueService(GetClans plugin, MySQL mySQL)
+    public QueueService(GetClan plugin, MySQL mySQL)
     {
         this.plugin = plugin;
         this.mySQL = mySQL;
@@ -36,6 +37,7 @@ public class QueueService {
             connection = getConnection();
             connection.setAutoCommit(false);
 
+            int countQuery = 0;
             while (!queryQueue.isEmpty()) {
                 QueuedQuery queuedQuery = queryQueue.poll();
 
@@ -47,6 +49,7 @@ public class QueueService {
                     }
 
                     statement.executeUpdate();
+                    countQuery++;
                 } catch (SQLException e) {
                     plugin.getLogger().severe("Błąd podczas przetwarzania zapytania: " + e.getMessage());
                     connection.rollback();
@@ -55,6 +58,7 @@ public class QueueService {
             }
 
             connection.commit();
+            plugin.getLogger().info(ConsoleColor.CYAN+"Zapis do bazy danych. Wykonane zapytania: "+countQuery);
         } catch (SQLException e) {
             plugin.getLogger().severe("Błąd podczas nawiązywania połączenia lub transakcji: " + e.getMessage());
             if (connection != null) {

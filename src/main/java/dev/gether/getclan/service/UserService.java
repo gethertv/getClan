@@ -1,11 +1,10 @@
-package dev.gether.getclans.service;
+package dev.gether.getclan.service;
 
-import dev.gether.getclans.database.MySQL;
-import dev.gether.getclans.model.Clan;
-import dev.gether.getclans.model.QueuedQuery;
-import dev.gether.getclans.model.User;
-import dev.gether.getclans.utils.ConsoleColor;
-import org.bukkit.Bukkit;
+import dev.gether.getclan.database.MySQL;
+import dev.gether.getclan.model.Clan;
+import dev.gether.getclan.model.QueuedQuery;
+import dev.gether.getclan.model.User;
+import dev.gether.getclan.utils.ConsoleColor;
 import org.bukkit.entity.Player;
 
 import java.sql.ResultSet;
@@ -27,7 +26,7 @@ public class UserService extends BaseService {
     }
 
     public void updateUser(UUID uuid, User user) {
-        String sql = "UPDATE "+tableUsers+" SET kills = ? , deaths = ? , points = ? , clan_tag = ? , uuid = ?";
+        String sql = "UPDATE "+tableUsers+" SET kills = ? , deaths = ? , points = ? , clan_tag = ? WHERE uuid = ?";
 
         String clan = (user.getClan()!=null ? user.getClan().getTag() : "");
         List<Object> parameters = Arrays.asList(user.getKills(), user.getDeath(), user.getPoints(), clan, uuid.toString());
@@ -49,8 +48,11 @@ public class UserService extends BaseService {
                 Clan clan = null;
                 if (tag != null) {
                     Clan temp = plugin.getClansManager().getClan(tag.toUpperCase());
+                    // check clan exists
                     if (temp != null) {
                         clan = temp;
+                        if(!clan.isOwner(uuid))
+                            clan.addMember(uuid);
                     }
                 }
                 plugin.getUserManager().getUserData().put(uuid, new User(uuid, kills, deaths, points, clan));

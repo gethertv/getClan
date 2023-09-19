@@ -1,4 +1,4 @@
-package dev.gether.getclans.model;
+package dev.gether.getclan.model;
 
 import java.util.List;
 

@@ -1,17 +1,16 @@
-package dev.gether.getclans.listener;
+package dev.gether.getclan.listener;
 
-import dev.gether.getclans.GetClans;
+import dev.gether.getclan.GetClan;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 
 public class PlayerConnectionListener implements Listener {
 
-    private final GetClans plugin;
-    public PlayerConnectionListener(GetClans plugin)
+    private final GetClan plugin;
+    public PlayerConnectionListener(GetClan plugin)
     {
         this.plugin = plugin;
     }

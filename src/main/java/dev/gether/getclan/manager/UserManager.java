@@ -1,9 +1,9 @@
-package dev.gether.getclans.manager;
+package dev.gether.getclan.manager;
 
-import dev.gether.getclans.GetClans;
-import dev.gether.getclans.config.Config;
-import dev.gether.getclans.service.UserService;
-import dev.gether.getclans.model.User;
+import dev.gether.getclan.GetClan;
+import dev.gether.getclan.config.Config;
+import dev.gether.getclan.service.UserService;
+import dev.gether.getclan.model.User;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;
@@ -11,14 +11,11 @@ import java.util.UUID;
 
 public class UserManager {
 
-    private final GetClans plugin;
     private Config config;
     private HashMap<UUID, User> userData = new HashMap<>();
-
     private UserService userService;
-    public UserManager(GetClans plugin, UserService userService)
+    public UserManager(GetClan plugin, UserService userService)
     {
-        this.plugin = plugin;
         this.userService = userService;
         this.config = plugin.getConfigPlugin();
 
@@ -47,4 +44,5 @@ public class UserManager {
     public HashMap<UUID, User> getUserData() {
         return userData;
     }
+
 }

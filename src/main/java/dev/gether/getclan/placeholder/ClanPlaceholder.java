@@ -1,9 +1,9 @@
 package dev.gether.getclan.placeholder;
 
 import dev.gether.getclan.GetClan;
+import dev.gether.getclan.config.Config;
 import dev.gether.getclan.model.Clan;
 import dev.gether.getclan.model.User;
-import dev.gether.getclan.manager.UserManager;
 import dev.gether.getclan.utils.ColorFixer;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import me.clip.placeholderapi.expansion.Relational;
@@ -11,10 +11,8 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-import java.util.UUID;
 
-public class StatsPoints extends PlaceholderExpansion implements Relational {
+public class ClanPlaceholder extends PlaceholderExpansion implements Relational {
 
     @Override
     public @NotNull String getIdentifier() {
@@ -31,81 +29,83 @@ public class StatsPoints extends PlaceholderExpansion implements Relational {
         return "1.0";
     }
 
-    private final GetClan plugin;
+    @Override
+    public boolean persist() {
+        return true;
+    }
 
-    public StatsPoints(GetClan plugin)
+    private final GetClan plugin;
+    private Config config;
+    public ClanPlaceholder(GetClan plugin)
     {
         this.plugin = plugin;
+        this.config = plugin.getConfigPlugin();
         this.register();
     }
 
+    @Override
     public String onRequest(OfflinePlayer offlinePlayer, String identifier) {
         if (offlinePlayer.getPlayer() == null) return null;
         Player player = offlinePlayer.getPlayer();
-        if(identifier.equalsIgnoreCase("upoints"))
-        {
-            User user = GetClan.getInstance().getUserManager().getUserData().get(player.getUniqueId());
-            if(user==null)
-                return "";
+        if (identifier.startsWith("user")) {
+            if (identifier.equalsIgnoreCase("user_points")) {
+                User user = plugin.getUserManager().getUserData().get(player.getUniqueId());
+                if (user == null) return "";
 
-            return ""+user.getPoints();
+                return ColorFixer.addColors(
+                        config.formatUserPoints.replace("{points}", String.valueOf(user.getPoints()))
+                );
+            }
+            return null;
         }
-        if(identifier.equalsIgnoreCase("points"))
-        {
-            return getAveragePoint(player);
+        if (identifier.startsWith("clan")) {
+            switch (identifier.toLowerCase()) {
+                case "clan_points":
+                    String averagePoints = plugin.getClansManager().getAveragePoint(player);
+                    return ColorFixer.addColors(
+                            config.formatClanPoints.replace("{points}", averagePoints)
+                    );
+                case "clan_tag":
+                    User user = plugin.getUserManager().getUserData().get(player.getUniqueId());
+                    if (user == null || user.getClan() == null) return "";
+
+                    return ColorFixer.addColors(
+                            config.formatTag.replace("{tag}", user.getClan().getTag())
+                    );
+            }
+            return null;
         }
-        if(identifier.equalsIgnoreCase("tag"))
-        {
-            User user = GetClan.getInstance().getUserManager().getUserData().get(player.getUniqueId());
-            if(user==null || user.getClan()==null)
-                return "";
-
-            return user.getClan().getTag();
-        }
-
-
         return null;
     }
 
-
-    public String getAveragePoint(Player player)
-    {
-        UserManager userManager = plugin.getUserManager();
-        User user = userManager.getUserData().get(player.getUniqueId());
-        if(user==null || user.hasClan())
-            return "";
-
-        List<UUID> members = user.getClan().getMembers();
-        int sum = 0;
-        int count = 0;
-
-        for (UUID uuid : members) {
-            User tempUser = userManager.getUserData().get(uuid);
-            sum += tempUser.getPoints();
-            count++;
-        }
-        double average = (double) sum / count;
-        return String.valueOf((int) average);
-    }
 
     @Override
     public String onPlaceholderRequest(Player first, Player second, String identifier) {
-        if(first == null || second == null)
-            return null;
+        if (first == null || second == null) return null;
 
-        if(identifier.equalsIgnoreCase("rtag"))
-        {
-            User user = plugin.getUserManager().getUserData().get(first.getUniqueId());
-            if(user==null || user.getClan()==null)
-                return "";
+        if (identifier.equalsIgnoreCase("tag")) {
+            User user1 = plugin.getUserManager().getUserData().get(first.getUniqueId());
+            User user2 = plugin.getUserManager().getUserData().get(second.getUniqueId());
 
-            Clan clan = user.getClan();
-            String tag = user.getClan().getTag();
-            if(clan.isMember(second.getUniqueId()))
-                return ColorFixer.addColors("&e"+tag);
-            else
-                return ColorFixer.addColors("&c"+tag);
+            if (user1 == null || user2 == null) return null;
+
+            Clan clan1 = user2.getClan();
+            if (clan1 == null) return "";
+
+            String tag = clan1.getTag();
+
+            if (clan1.isMember(first.getUniqueId())) {
+                return ColorFixer.addColors(config.formatMember.replace("{tag}", String.valueOf(tag)));
+            }
+
+            Clan clan2 = user1.getClan();
+            if (clan2 != null && clan1.isAlliance(clan2.getTag())) {
+                return ColorFixer.addColors(config.formatAlliance.replace("{tag}", String.valueOf(tag)));
+            }
+
+            return ColorFixer.addColors(config.formatNormal.replace("{tag}", String.valueOf(tag)));
         }
         return null;
     }
+
 }

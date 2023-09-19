@@ -1,6 +1,5 @@
-package dev.gether.getclans.model;
+package dev.gether.getclan.model;
 
-import dev.gether.getclans.model.Clan;
 import org.bukkit.entity.Player;
 
 import java.util.UUID;
@@ -31,14 +30,20 @@ public class User {
         this.points = points;
     }
 
-    public void addDeath(int points) {
-        this.points-=points;
-        this.death--;
-
+    public void increaseDeath() {
+        this.death++;
     }
-    public void addKill( int points) {
-        this.points+=points;
+    public void increaseKill( ) {
         this.kills++;
+    }
+
+    public void takePoint(int points)
+    {
+        this.points-=points;
+    }
+    public void addPoint(int points)
+    {
+        this.points+=points;
     }
 
     public void setPoints(int points) {
@@ -53,6 +58,10 @@ public class User {
         return clan;
     }
 
+    public boolean hasClan()
+    {
+        return clan != null;
+    }
     public int getKills() {
         return kills;
     }
@@ -65,5 +74,7 @@ public class User {
         return points;
     }
 
-
+    public UUID getUuid() {
+        return uuid;
+    }
 }

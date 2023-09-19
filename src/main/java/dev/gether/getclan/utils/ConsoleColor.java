@@ -1,4 +1,4 @@
-package dev.gether.getclans.utils;
+package dev.gether.getclan.utils;
 
 public class ConsoleColor {
     // Reset

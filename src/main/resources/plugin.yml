@@ -1,4 +1,5 @@
-name: getClans
+name: getClan
 version: '${project.version}'
-main: dev.gether.getclans.GetClans
+main: dev.gether.getclan.GetClan
 api-version: 1.16
+softdepend: [Vault]
