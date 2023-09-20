@@ -85,7 +85,7 @@ public class ClanPlaceholder extends PlaceholderExpansion implements Relational 
         }
         if (identifier.startsWith("clan")) {
             User user = plugin.getUserManager().getUserData().get(player.getUniqueId());
-            if (user == null || user.getClan() == null) return "";
+            if (user == null || user.getClan()==null) return "";
             switch (identifier.toLowerCase()) {
                 case "clan_format_points":
                     String averagePoints = plugin.getClansManager().getAveragePoint(player);
@@ -145,7 +145,7 @@ public class ClanPlaceholder extends PlaceholderExpansion implements Relational 
     }
 
     private String handleTopType(Function<Integer, PlayerStat> fetcher, String identifier, int top) {
-        PlayerStat statByIndex = fetcher.apply(top);
+        PlayerStat statByIndex = fetcher.apply(top-1);
         if(statByIndex==null)
             return "";
 
