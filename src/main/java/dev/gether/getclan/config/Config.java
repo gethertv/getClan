@@ -47,11 +47,11 @@ public class Config extends OkaeriConfig {
 
     @Comment("Placeholder kiedy nie posiadasz TAGU klanu")
     public String noneTag = "Brak";
-    @Comment("[%getclan_user_points%] Format dla punktów gracza")
+    @Comment("[%getclan_user_format_points%] Format dla punktów gracza")
     public String formatUserPoints = "&7[&f{points}&7]";
-    @Comment("[%getclan_clan_points%] Format dla punktów klanu")
+    @Comment("[%getclan_clan_format_points%] Format dla punktów klanu")
     public String formatClanPoints = "&7[&f{points}&7]";
-    @Comment("[%getclan_clan_tag%] Format dla tagu")
+    @Comment("[%getclan_clan_format_tag%] Format dla tagu")
     public String formatTag = "&7[&f{tag}&7]";
     @Comment("[%rel_getclan_tag%] Format dla sojuszników")
     public String formatAlliance = "#147aff{tag}";
@@ -59,7 +59,7 @@ public class Config extends OkaeriConfig {
     public String formatMember = "#48ff05{tag}";
 
     @Comment("[%rel_getclan_tag%] Format normalny dla tagu | {tag} {player}")
-    public String formatNormal = "{tag}";
+    public String formatNormal = "&c{tag}";
 
     @Comment("Format do wiadomosci wyslanej do gildii | {tag} {player}")
     public String formatClanMessage = "&6{player} -> ⚐ | &e{message}";
