@@ -32,17 +32,26 @@ public class UserManager {
         }
     }
 
-    public boolean resetUser(Player player) {
-        User user = userData.get(player.getUniqueId());
-        if(user==null)
-            return false;
-
+    public void resetUser(User user) {
         user.setPoints(config.defaultPoints);
-        return true;
+        user.resetKill();
+        user.resetDeath();
+    }
+    public void resetPoints(User user) {
+        user.setPoints(config.defaultPoints);
+    }
+
+    public void resetKill(User user) {
+        user.resetKill();
+    }
+
+    public void resetDeath(User user) {
+        user.resetDeath();
     }
 
     public HashMap<UUID, User> getUserData() {
         return userData;
     }
+
 
 }

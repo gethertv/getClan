@@ -4,7 +4,7 @@ import dev.gether.getclan.GetClan;
 import dev.gether.getclan.config.Config;
 import dev.gether.getclan.manager.UserManager;
 import dev.gether.getclan.model.User;
-import dev.gether.getclan.model.clan.Owner;
+import dev.gether.getclan.model.role.Owner;
 import dev.rollczi.litecommands.command.Invocation;
 import dev.rollczi.litecommands.contextual.Contextual;
 import org.bukkit.command.CommandSender;

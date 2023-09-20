@@ -3,13 +3,17 @@ package dev.gether.getclan.placeholder;
 import dev.gether.getclan.GetClan;
 import dev.gether.getclan.config.Config;
 import dev.gether.getclan.model.Clan;
+import dev.gether.getclan.model.PlayerStat;
 import dev.gether.getclan.model.User;
 import dev.gether.getclan.utils.ColorFixer;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import me.clip.placeholderapi.expansion.Relational;
+import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.function.Function;
 
 
 public class ClanPlaceholder extends PlaceholderExpansion implements Relational {
@@ -47,37 +51,60 @@ public class ClanPlaceholder extends PlaceholderExpansion implements Relational 
     public String onRequest(OfflinePlayer offlinePlayer, String identifier) {
         if (offlinePlayer.getPlayer() == null) return null;
         Player player = offlinePlayer.getPlayer();
-        if (identifier.startsWith("user")) {
-            if (identifier.equalsIgnoreCase("user_points")) {
-                User user = plugin.getUserManager().getUserData().get(player.getUniqueId());
-                if (user == null) return "";
+        if (identifier.startsWith("top")) {
+            String[] args = identifier.split("_");
+            if (args.length >= 4 && isNumber(args[2])) {
+                int top = Integer.parseInt(args[2]);
+                if (identifier.startsWith("top_kill")) {
+                    return handleTopType(plugin.getTopRankScheduler()::getKillStatByIndex, identifier, top);
+                }
+                if (identifier.startsWith("top_death")) {
+                    return handleTopType(plugin.getTopRankScheduler()::getDeathStatByIndex, identifier, top);
+                }
+                if (identifier.startsWith("top_points")) {
+                    return handleTopType(plugin.getTopRankScheduler()::getPointStatByIndex, identifier, top);
+                }
+                if (identifier.startsWith("top_clan")) {
+                    return handleTopType(plugin.getTopRankScheduler()::getClanStatByIndex, identifier, top);
+                }
+            }
 
-                return ColorFixer.addColors(
-                        config.formatUserPoints.replace("{points}", String.valueOf(user.getPoints()))
-                );
+        }
+        if (identifier.startsWith("user")) {
+            User user = plugin.getUserManager().getUserData().get(player.getUniqueId());
+            if (user == null) return "";
+            switch (identifier.toLowerCase()) {
+                case "user_format_points":
+                    return ColorFixer.addColors(
+                            config.formatUserPoints.replace("{points}", String.valueOf(user.getPoints()))
+                    );
+                case "user_points":
+                    return String.valueOf(user.getPoints());
             }
             return null;
         }
         if (identifier.startsWith("clan")) {
+            User user = plugin.getUserManager().getUserData().get(player.getUniqueId());
+            if (user == null || user.getClan() == null) return "";
             switch (identifier.toLowerCase()) {
-                case "clan_points":
+                case "clan_format_points":
                     String averagePoints = plugin.getClansManager().getAveragePoint(player);
                     return ColorFixer.addColors(
                             config.formatClanPoints.replace("{points}", averagePoints)
                     );
-                case "clan_tag":
-                    User user = plugin.getUserManager().getUserData().get(player.getUniqueId());
-                    if (user == null || user.getClan() == null) return "";
-
+                case "clan_format_tag":
                     return ColorFixer.addColors(
                             config.formatTag.replace("{tag}", user.getClan().getTag())
                     );
+                case "clan_points":
+                    return plugin.getClansManager().getAveragePoint(player);
+                case "clan_tag":
+                    return user.getClan().getTag();
             }
             return null;
         }
         return null;
     }
-
 
     @Override
     public String onPlaceholderRequest(Player first, Player second, String identifier) {
@@ -106,6 +133,29 @@ public class ClanPlaceholder extends PlaceholderExpansion implements Relational 
             return ColorFixer.addColors(config.formatNormal.replace("{tag}", String.valueOf(tag)));
         }
         return null;
+    }
+
+    private boolean isNumber(String arg) {
+        try {
+            int a = Integer.parseInt(arg);
+            return true;
+        } catch (NumberFormatException ignore) {}
+
+        return false;
+    }
+
+    private String handleTopType(Function<Integer, PlayerStat> fetcher, String identifier, int top) {
+        PlayerStat statByIndex = fetcher.apply(top);
+        if(statByIndex==null)
+            return "";
+
+        if (identifier.endsWith("_value")) {
+            return String.valueOf(statByIndex.getInt());
+        }
+        if (identifier.endsWith("_name")) {
+            return String.valueOf(statByIndex.getName());
+        }
+        return "";
     }
 
 }

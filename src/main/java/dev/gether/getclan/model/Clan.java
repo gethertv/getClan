@@ -51,6 +51,12 @@ public class Clan {
         invitedPlayers.remove(uuid);
         members.add(uuid);
     }
+
+    public void resetInvite()
+    {
+        inviteAlliances.clear();
+        invitedPlayers.clear();
+    }
     public void removeMember(UUID uuid) {
         if(deputyOwnerUUID!=null && deputyOwnerUUID.equals(uuid))
             deputyOwnerUUID = null;

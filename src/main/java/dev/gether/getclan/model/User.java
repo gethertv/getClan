@@ -62,6 +62,14 @@ public class User {
     {
         return clan != null;
     }
+    public void resetKill()
+    {
+        kills = 0;
+    }
+    public void resetDeath()
+    {
+        death = 0;
+    }
     public int getKills() {
         return kills;
     }

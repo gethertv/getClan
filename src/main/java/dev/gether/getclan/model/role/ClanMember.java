@@ -1,4 +1,4 @@
-package dev.gether.getclan.model.clan;
+package dev.gether.getclan.model.role;
 
 import dev.gether.getclan.model.Clan;
 import org.bukkit.entity.Player;

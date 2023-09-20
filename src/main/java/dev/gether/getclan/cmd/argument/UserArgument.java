@@ -3,7 +3,6 @@ package dev.gether.getclan.cmd.argument;
 import dev.gether.getclan.config.Config;
 import dev.gether.getclan.manager.UserManager;
 import dev.gether.getclan.model.User;
-import dev.gether.getclan.model.role.Owner;
 import dev.rollczi.litecommands.argument.ArgumentName;
 import dev.rollczi.litecommands.argument.simple.OneArgument;
 import dev.rollczi.litecommands.command.LiteInvocation;
@@ -15,21 +14,19 @@ import panda.std.Result;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@ArgumentName("owner")
-public class OwnerArgument implements OneArgument<Owner> {
+@ArgumentName("user")
+public class UserArgument implements OneArgument<User> {
 
     private final UserManager userManager;
-
-
     private Config config;
 
-    public OwnerArgument(Config config, UserManager userManager) {
+    public UserArgument(Config config, UserManager userManager) {
         this.config = config;
         this.userManager = userManager;
     }
 
     @Override
-    public Result<Owner, Object> parse(LiteInvocation invocation, String argument) {
+    public Result<User, Object> parse(LiteInvocation invocation, String argument) {
         Player player = Bukkit.getPlayer(argument);
         if(player==null)
         {
@@ -37,11 +34,7 @@ public class OwnerArgument implements OneArgument<Owner> {
         }
 
         User user = userManager.getUserData().get(player.getUniqueId());
-        if(!user.hasClan())
-        {
-            return Result.error(config.langNoClan);
-        }
-        return Result.ok(new Owner(player, user.getClan()));
+        return Result.ok(user);
     }
     @Override
     public List<Suggestion> suggest(LiteInvocation invocation) {

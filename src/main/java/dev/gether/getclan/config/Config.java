@@ -15,7 +15,7 @@ import org.bukkit.inventory.ItemStack;
 public class Config extends OkaeriConfig {
 
     @Comment("Domyślna ilość punktów dla gracza")
-    public int defaultPoints = 0;
+    public int defaultPoints = 500;
     @Comment("Limit sojusznikow dla klanu")
     public int limitAlliance = 2;
     @Comment("Czy ma być włączone pvp dla klanu")
@@ -25,8 +25,10 @@ public class Config extends OkaeriConfig {
 
     @Comment("Limit osób w klanie ")
     public Map<String, Integer> permissionLimitMember = Map.of("getclan.default", 5);
-
-
+    @Comment("System Antiabuse (Nabijanie rankingu)")
+    public boolean systemAntiabuse = true;
+    @Comment("Co ile sekund nadal mozna zabic tego samego gracza")
+    public int cooldown = 300;
     @Comment("Czy wlaczyc platne tworzenie klanu (true | false)")
     public boolean enablePayment = true;
     @Comment("Jezeli opcja powyzej jest wlaczona to jaka metoda platnosci (ITEM|VAULT)")
@@ -65,17 +67,19 @@ public class Config extends OkaeriConfig {
     @Comment("Format do wiadomosci wyslanej do sojusznikow")
     public String formatAllianceMessage = "#006eff{player} -> ⚐ | #78d4ff{message}";
     @Comment("Komunikaty językowe")
-    public String langMinMaxTag = "&4⚐ | &cNazwa klanu może mieć od &4{min-length}&cdo &4{max-length} &cliter!";
+    public String langMinMaxTag = "&4⚐ | &cNazwa klanu może mieć od &4{min-length}&c do &4{max-length} &cliter!";
     public String langTagIsBusy = "&4⚐ | &cKlan o podanej nazwie już istnieje!";
     public String langPlayerNotOnline = "&4⚐ | &cGracz o podanej nazwie nie został odnaleziony!";
     public String langInvitedPlayerHasClan = "&4⚐ | &cPodany gracz posiada już klan!";
     public String langCannotKickYourSelf = "&4⚐ | &cNie możesz wyrzucić samego siebie!";
     public String langCannotKickOwner = "&4⚐ | &cNie możesz wyrzucić lidera klanu!";
     public String langLimitMembers = "&4⚐ | &cPrzekroczono limit członków w klanie!";
+    public String langInvalidCharacter = "&4⚐ | &cTag zawiera niedozwolone znaki!";
     public String langCancelInvite = "&2⚐ | &aZaproszenie dla gracza &2{player} &azostało anulowane!";
     public String langInvitedPlayer = "&2⚐ | &aZaprosiłeś gracza &2{player} &ado klanu!";
     public String langChangeOwner = "&2⚐ | &aPrzekazano lidera!";
-    public String langLimitAlliance = "Nie możesz mieć więcej sojuszników!";
+    public String cooldownKill = "&4⚐ | &cMusisz odczekać &4{time}min &caby zabić tego gracza.";
+    public String langLimitAlliance = "&4⚐ | &cNie możesz mieć więcej sojuszników!";
     public String langNoClan = "&4⚐ | &cNie posiadasz klanu!";
     public String langGetInvitation = "&2⚐ | &aOtrzymałeś zaproszenie do klanu &8[&2{tag}&8]\n&2⚐ | &aAby zaakceptować wpisz &2/klan dolacz {tag}";
     public String langNotOwnerClan = "&4⚐ | &cNie jesteś liderem klanu!";
@@ -100,8 +104,8 @@ public class Config extends OkaeriConfig {
     public String langBroadcastDeleteClan = "&4⚐ | &cKlan &8[&4{tag}&8] &czostał usunięty przez &4{player}&c!";
     public String langBroadcastCreateClan = "&2⚐ | &aKlan &8[&2{tag}&8] &azostał utworzony przez &2{player}&a!";
     public String langBroadcastDeathInfo = "&4☠ | &6{victim}&8(&c-{victim-points}&8) &7został zabity przez &6{killer}&8(&a+{killer-points}&8)";
-    public String langBroadcastCreateAlliance = "#ff5500⚐ | #2eb2ffKlan &8[#ff5500{first-clan}&8] #2eb2ffzawarł sojusz z &8[#ff5500{second-clan}&8]";
-    public String langBroadcastDisbandAlliance = "#ff5500⚐ | #2eb2ffKlan &8[#ff5500{first-clan}&8] #2eb2ffdzawarł sojusz z &8[#ff5500{second-clan}&8]";
+    public String langBroadcastCreateAlliance = "#008cff⚐ | #2eb2ffKlan &8[#008cff{first-clan}&8] #2eb2ffzawarł sojusz z &8[#008cff{second-clan}&8]";
+    public String langBroadcastDisbandAlliance = "#008cff⚐ | #2eb2ffKlan &8[#008cff{first-clan}&8] #2eb2ffzerwał sojusz z &8[#008cff{second-clan}&8]";
     public String langNoPermission = "&4⚐ | &cBrak uprawnień! &8(&f{permission}&8)";
     public List<String> langInfoClan = Arrays.asList(
                                                 "&7",

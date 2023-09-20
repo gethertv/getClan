@@ -4,9 +4,9 @@ import dev.gether.getclan.GetClan;
 import dev.gether.getclan.model.Clan;
 import dev.gether.getclan.model.User;
 import dev.gether.getclan.manager.UserManager;
-import dev.gether.getclan.model.clan.DeputyOwner;
-import dev.gether.getclan.model.clan.Member;
-import dev.gether.getclan.model.clan.Owner;
+import dev.gether.getclan.model.role.DeputyOwner;
+import dev.gether.getclan.model.role.Member;
+import dev.gether.getclan.model.role.Owner;
 import dev.gether.getclan.utils.ColorFixer;
 import dev.gether.getclan.utils.MessageUtil;
 import dev.rollczi.litecommands.argument.Arg;
@@ -19,11 +19,16 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 @Route(name = "getclan", aliases = "klan")
 @Permission("getclan.use")
 public class GetClanCmd {
 
     private final GetClan plugin;
+    private Pattern pattern = Pattern.compile("^[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ0-9]+$");
+
     public GetClanCmd(GetClan plugin) {
         this.plugin = plugin;
     }
@@ -39,6 +44,12 @@ public class GetClanCmd {
 
     @Execute(route = "stworz")
     public void createClan(Player player, @Arg String tag) {
+        Matcher matcher = pattern.matcher(tag);
+        if(!matcher.matches())
+        {
+            MessageUtil.sendMessage(player, plugin.getConfigPlugin().langInvalidCharacter);
+            return;
+        }
         plugin.getClansManager().createClan(player, tag);
     }
     @Execute(route = "info")
@@ -79,20 +90,40 @@ public class GetClanCmd {
     }
 
     @Execute(route = "reload")
-    @Permission("getclans.admin")
+    @Permission("getclan.admin")
     public void reloadConfig(LiteSender sender)
     {
         plugin.reloadPlugin(sender);
     }
-    @Execute(route = "admin reset")
-    @Permission("getclans.admin")
-    public void adminReset(LiteSender sender, @Arg @Name("gracz") Player target) {
-        plugin.getUserManager().resetUser(target);
-        MessageUtil.sendMessage(sender, "&aPomyslnie zresetowano ranking!");
+    @Execute(route = "admin reset all")
+    @Permission("getclan.admin")
+    public void adminReset(LiteSender sender, @Arg @Name("gracz") User user) {
+        plugin.getUserManager().resetUser(user);
+        MessageUtil.sendMessage(sender, "&aPomyslnie zresetowano!");
+    }
+
+    @Execute(route = "admin reset punkty")
+    @Permission("getclan.admin")
+    public void adminResetPoints(LiteSender sender, @Arg @Name("gracz") User user) {
+        plugin.getUserManager().resetPoints(user);
+        MessageUtil.sendMessage(sender, "&aPomyslnie zresetowano punkty!");
+    }
+
+    @Execute(route = "admin reset zabojstwa")
+    @Permission("getclan.admin")
+    public void adminResetKill(LiteSender sender, @Arg @Name("gracz") User user) {
+        plugin.getUserManager().resetKill(user);
+        MessageUtil.sendMessage(sender, "&aPomyslnie zresetowano zabójstwa!");
+    }
+    @Execute(route = "admin reset smierci")
+    @Permission("getclan.admin")
+    public void adminResetDeath(LiteSender sender, @Arg @Name("gracz") User user) {
+        plugin.getUserManager().resetDeath(user);
+        MessageUtil.sendMessage(sender, "&aPomyslnie zresetowano śmierci!");
     }
 
     @Execute(route = "admin debug")
-    @Permission("getclans.admin")
+    @Permission("getclan.admin")
     public void adminDebug(LiteSender sender, @Arg @Name("gracz") Player target) {
         User user = plugin.getUserManager().getUserData().get(target.getUniqueId());
         if (user == null || user.getClan() == null) {
@@ -106,7 +137,7 @@ public class GetClanCmd {
         }));
     }
     @Execute(route = "admin setitem")
-    @Permission("getclans.admin")
+    @Permission("getclan.admin")
     public void setItemCost(Player player) {
         ItemStack itemInMainHand = player.getInventory().getItemInMainHand();
         if(itemInMainHand==null || itemInMainHand.getType()== Material.AIR)
@@ -121,29 +152,17 @@ public class GetClanCmd {
         plugin.getConfigPlugin().save();
         MessageUtil.sendMessage(player, "&aPomyślnie ustawiono item!");
     }
-    @Execute(route = "admin usun")
-    @Permission("getclans.admin")
+    @Execute(route = "admin usun klan")
+    @Permission("getclan.admin")
     public void adminRemove(LiteSender sender, @Arg @Name("gracz") Owner owner) {
         plugin.getClansManager().deleteClan(owner);
         MessageUtil.sendMessage(sender, "&aPomyslnie usunieto klan");
     }
 
-    @Execute(route = "admin setpoint")
-    @Permission("getclans.admin")
-    public void adminSetPoint(LiteSender sender, @Arg @Name("gracz") Player target, @Arg @Name("punkty") int points) {
-        User user = plugin.getUserManager().getUserData().get(target.getUniqueId());
+    @Execute(route = "admin ustawpunkty")
+    @Permission("getclan.admin")
+    public void adminSetPoint(LiteSender sender, @Arg @Name("gracz") User user, @Arg @Name("punkty") int points) {
         user.setPoints(points);
-        sender.sendMessage(ColorFixer.addColors("&aPomyslnie ustawione nowe punkty dla " + target.getName()));
+        sender.sendMessage(ColorFixer.addColors("&aPomyslnie ustawiono nowe punkty!"));
     }
-
-    private boolean isInt(String input)
-    {
-        try {
-            int a = Integer.parseInt(input);
-            return true;
-        } catch (NumberFormatException ignored) {}
-
-        return false;
-    }
-
 }

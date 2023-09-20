@@ -5,9 +5,9 @@ import dev.gether.getclan.config.Config;
 import dev.gether.getclan.event.*;
 import dev.gether.getclan.model.Clan;
 import dev.gether.getclan.model.CostType;
-import dev.gether.getclan.model.clan.DeputyOwner;
-import dev.gether.getclan.model.clan.Member;
-import dev.gether.getclan.model.clan.Owner;
+import dev.gether.getclan.model.role.DeputyOwner;
+import dev.gether.getclan.model.role.Member;
+import dev.gether.getclan.model.role.Owner;
 import dev.gether.getclan.service.ClanService;
 import dev.gether.getclan.model.User;
 import dev.gether.getclan.utils.ItemUtil;
@@ -352,7 +352,6 @@ public class ClanManager {
             return true;
         } else {
             int amount = ItemUtil.calcItemAmount(player, config.itemCost);
-            player.getInventory().addItem(config.itemCost);
             int needAmount = (int) config.costCreate;
             if(amount<needAmount)
             {
