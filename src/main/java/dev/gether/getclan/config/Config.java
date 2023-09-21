@@ -42,11 +42,13 @@ public class Config extends OkaeriConfig {
     public String colorOnlinePlayer = "&a";
     public String colorOfflinePlayer = "&7";
 
-    @Comment("Placeholder gdy zastępca lidera nie jest ustawiony")
+    @Comment("Gdy zastępca lidera nie jest ustawiony")
     public String noneDeputy = "Brak";
 
-    @Comment("Placeholder kiedy nie posiadasz TAGU klanu")
+    @Comment("Placeholder FORMAT kiedy nie posiadasz TAGU klanu")
     public String noneTag = "Brak";
+    @Comment("Placeholder FORMAT kiedy nie posidasz punktów klanu")
+    public String nonePointsClan = "Brak";
     @Comment("[%getclan_user_format_points%] Format dla punktów gracza")
     public String formatUserPoints = "&7[&f{points}&7]";
     @Comment("[%getclan_clan_format_points%] Format dla punktów klanu")

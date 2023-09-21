@@ -133,6 +133,9 @@ public class ClanManager {
     }
 
     private int getUserMaxMember(UUID uuid) {
+        if(uuid==null)
+            return 0;
+
         Player player = Bukkit.getPlayer(uuid);
         if(player!=null)
         {
@@ -151,6 +154,11 @@ public class ClanManager {
 
     public void infoClan(Player player, Clan clan) {
 
+        OptionalInt clanRankIndexByTag = plugin.getTopRankScheduler().getClanRankIndexByTag(clan.getTag());
+        int index = 9999;
+        if(clanRankIndexByTag.isPresent())
+            index = clanRankIndexByTag.getAsInt()+1;
+
         String infoMessage = MessageUtil.joinListToString(config.langInfoClan);
         infoMessage = infoMessage.replace("{tag}", clan.getTag())
                         .replace("{owner}", getPlayerName(clan.getOwnerUUID()))
@@ -158,6 +166,7 @@ public class ClanManager {
                         .replace("{points}", getAveragePoint(clan))
                         .replace("{members-online}", String.valueOf(countOnlineMember(clan)))
                         .replace("{members-size}", String.valueOf(clan.getMembers().size()))
+                        .replace("{rank}", String.valueOf(index))
                         .replace("{members}", getClanMembers(clan));
 
         MessageUtil.sendMessage(player, infoMessage);

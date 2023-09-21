@@ -80,12 +80,16 @@ public class ClanPlaceholder extends PlaceholderExpansion implements Relational 
                     );
                 case "user_points":
                     return String.valueOf(user.getPoints());
+                case "user_kills":
+                    return String.valueOf(user.getKills());
+                case "user_death":
+                    return String.valueOf(user.getDeath());
             }
             return null;
         }
         if (identifier.startsWith("clan")) {
             User user = plugin.getUserManager().getUserData().get(player.getUniqueId());
-            if (user == null || user.getClan()==null) return "";
+            if (user == null) return "";
             switch (identifier.toLowerCase()) {
                 case "clan_format_points":
                     String averagePoints = plugin.getClansManager().getAveragePoint(player);
@@ -93,12 +97,15 @@ public class ClanPlaceholder extends PlaceholderExpansion implements Relational 
                             config.formatClanPoints.replace("{points}", averagePoints)
                     );
                 case "clan_format_tag":
+                    if (user.getClan() == null) return "";
                     return ColorFixer.addColors(
                             config.formatTag.replace("{tag}", user.getClan().getTag())
                     );
                 case "clan_points":
+                    if (user.getClan() == null) return "";
                     return plugin.getClansManager().getAveragePoint(player);
                 case "clan_tag":
+                    if (user.getClan() == null) return "";
                     return user.getClan().getTag();
             }
             return null;

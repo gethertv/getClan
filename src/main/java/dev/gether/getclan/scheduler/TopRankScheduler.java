@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
+import java.util.stream.IntStream;
 
 public class TopRankScheduler extends BukkitRunnable {
 
@@ -111,5 +112,12 @@ public class TopRankScheduler extends BukkitRunnable {
             return list.get(index);
         }
         return null;
+    }
+
+    public OptionalInt getClanRankIndexByTag(String tag) {
+        List<PlayerStat> list = new ArrayList<>(clanStatsQueue);
+        return IntStream.range(0, list.size())
+                .filter(index -> list.get(index).getName().equalsIgnoreCase(tag))
+                .findFirst();
     }
 }
