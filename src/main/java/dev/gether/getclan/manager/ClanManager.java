@@ -203,7 +203,7 @@ public class ClanManager {
         UserManager userManager = plugin.getUserManager();
         User user = userManager.getUserData().get(player.getUniqueId());
         if(user==null || !user.hasClan())
-            return config.noneTag;
+            return config.nonePointsClan;
 
         return getAveragePoint(user.getClan());
     }

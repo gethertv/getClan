@@ -97,7 +97,7 @@ public class ClanPlaceholder extends PlaceholderExpansion implements Relational 
                             config.formatClanPoints.replace("{points}", averagePoints)
                     );
                 case "clan_format_tag":
-                    if (user.getClan() == null) return "";
+                    if (user.getClan() == null) return config.noneTag;
                     return ColorFixer.addColors(
                             config.formatTag.replace("{tag}", user.getClan().getTag())
                     );
