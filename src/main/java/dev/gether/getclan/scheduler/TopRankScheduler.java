@@ -107,17 +107,27 @@ public class TopRankScheduler extends BukkitRunnable {
     }
 
     private PlayerStat getStatByIndex(PriorityQueue<PlayerStat> queue, int index) {
-        List<PlayerStat> list = new ArrayList<>(queue);
-        if (index >= 0 && index < list.size()) {
-            return list.get(index);
+        if (index >= 0 && index < queue.size()) {
+            PriorityQueue<PlayerStat> tempQueue = new PriorityQueue<>(queue);
+            PlayerStat stat = null;
+            for (int i = 0; i <= index; i++) {
+                stat = tempQueue.poll();
+            }
+            return stat;
         }
         return null;
     }
-
     public OptionalInt getClanRankIndexByTag(String tag) {
-        List<PlayerStat> list = new ArrayList<>(clanStatsQueue);
-        return IntStream.range(0, list.size())
-                .filter(index -> list.get(index).getName().equalsIgnoreCase(tag))
-                .findFirst();
+        PriorityQueue<PlayerStat> tempQueue = new PriorityQueue<>(clanStatsQueue);
+        PlayerStat stat = null;
+        int index = 0;
+        while ((stat = tempQueue.poll()) != null) {
+            if (stat.getName().equalsIgnoreCase(tag)) {
+                return OptionalInt.of(index);
+            }
+            index++;
+        }
+        return OptionalInt.empty();
     }
+
 }
