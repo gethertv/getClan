@@ -2,6 +2,7 @@ package dev.gether.getclan.listener;
 
 import dev.gether.getclan.GetClan;
 import dev.gether.getclan.config.Config;
+import dev.gether.getclan.config.lang.LangMessage;
 import dev.gether.getclan.model.AntySystemRank;
 import dev.gether.getclan.model.User;
 import dev.gether.getclan.manager.UserManager;
@@ -22,12 +23,14 @@ import java.util.UUID;
 public class PlayerDeathListener implements Listener {
 
     private final GetClan plugin;
+    private LangMessage lang;
     private Config config;
     private HashMap<UUID, AntySystemRank> antySystem = new HashMap<>();
     public PlayerDeathListener(GetClan plugin)
     {
         this.plugin = plugin;
         this.config = plugin.getConfigPlugin();
+        this.lang = plugin.lang;
     }
     @EventHandler
     public void onDeath(PlayerDeathEvent event)
@@ -53,7 +56,7 @@ public class PlayerDeathListener implements Listener {
             if (antySystemRank != null) {
                 if (!antySystemRank.isPlayerKillable(playerIp)) {
                     int second = SystemPoint.roundUpToMinutes(antySystemRank.getRemainingCooldown(playerIp));
-                    MessageUtil.sendMessage(killer, config.cooldownKill.replace("{time}", String.valueOf(second)));
+                    MessageUtil.sendMessage(killer, lang.cooldownKill.replace("{time}", String.valueOf(second)));
                     return;
                 }
                 antySystemRank.addCooldown(playerIp, config.cooldown);
@@ -81,7 +84,7 @@ public class PlayerDeathListener implements Listener {
         }
         event.deathMessage(Component.text(
                 ColorFixer.addColors(
-                        config.langBroadcastDeathInfo
+                        lang.langBroadcastDeathInfo
                                 .replace("{victim}", player.getName())
                                 .replace("{killer}", killer.getName())
                                 .replace("{victim-points}", String.valueOf(deathPointTake))

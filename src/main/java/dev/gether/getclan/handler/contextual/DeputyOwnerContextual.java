@@ -2,6 +2,7 @@ package dev.gether.getclan.handler.contextual;
 
 import dev.gether.getclan.GetClan;
 import dev.gether.getclan.config.Config;
+import dev.gether.getclan.config.lang.LangMessage;
 import dev.gether.getclan.manager.UserManager;
 import dev.gether.getclan.model.User;
 import dev.gether.getclan.model.role.DeputyOwner;
@@ -16,16 +17,16 @@ public class DeputyOwnerContextual implements Contextual<CommandSender, DeputyOw
 
 
     private GetClan plugin;
-    private Config config;
+    private LangMessage lang;
     public DeputyOwnerContextual(GetClan plugin) {
         this.plugin = plugin;
-        this.config = plugin.getConfigPlugin();
+        this.lang = plugin.lang;
     }
     @Override
     public Result<DeputyOwner, Object> extract(CommandSender sender, Invocation<CommandSender> invocation) {
         Option<Player> playerOption = Option.of(sender).is(Player.class);
         if(playerOption.isEmpty()) {
-            return Result.error(config.langPlayerNotOnline);
+            return Result.error(lang.langPlayerNotOnline);
         }
 
         Player player = playerOption.get();
@@ -33,12 +34,12 @@ public class DeputyOwnerContextual implements Contextual<CommandSender, DeputyOw
         User user = userManager.getUserData().get(player.getUniqueId());
 
         if(!user.hasClan()) {
-            return Result.error(config.langNoClan);
+            return Result.error(lang.langNoClan);
         }
         if(!user.getClan().isOwner(player.getUniqueId())) {
             if(!user.getClan().isDeputy(player.getUniqueId()))
             {
-                return Result.error(config.langNotOwnerClan);
+                return Result.error(lang.langNotOwnerClan);
             }
         }
 

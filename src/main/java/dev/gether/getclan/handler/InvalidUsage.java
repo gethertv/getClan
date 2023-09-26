@@ -1,6 +1,7 @@
 package dev.gether.getclan.handler;
 
 import dev.gether.getclan.config.Config;
+import dev.gether.getclan.config.lang.LangMessage;
 import dev.gether.getclan.utils.MessageUtil;
 import dev.rollczi.litecommands.command.LiteInvocation;
 import dev.rollczi.litecommands.handle.InvalidUsageHandler;
@@ -11,10 +12,10 @@ import java.util.List;
 
 public class InvalidUsage implements InvalidUsageHandler<CommandSender> {
 
-    private Config config;
-    public InvalidUsage(Config config)
+    private LangMessage lang;
+    public InvalidUsage(LangMessage lang)
     {
-        this.config = config;
+        this.lang = lang;
     }
     @Override
     public void handle(CommandSender sender, LiteInvocation invocation, Schematic schematic) {
@@ -24,11 +25,11 @@ public class InvalidUsage implements InvalidUsageHandler<CommandSender> {
             String[] split = first.split("\\|");
             if(split.length<=1)
             {
-                MessageUtil.sendMessage(sender, config.langUsageCmd.replace("{usage}", first));
+                MessageUtil.sendMessage(sender, lang.langUsageCmd.replace("{usage}", first));
                 return;
             }
         }
-        MessageUtil.sendMessage(sender, config.langUsageList);
+        MessageUtil.sendMessage(sender, lang.langUsageList);
     }
 
 }

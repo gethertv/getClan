@@ -1,9 +1,12 @@
 package dev.gether.getclan;
 
 import dev.gether.getclan.bstats.Metrics;
+import dev.gether.getclan.cmd.GetClanENCmd;
 import dev.gether.getclan.cmd.argument.ClanTagArgument;
 import dev.gether.getclan.cmd.argument.OwnerArgument;
 import dev.gether.getclan.cmd.argument.UserArgument;
+import dev.gether.getclan.config.lang.LangMessage;
+import dev.gether.getclan.config.lang.LangType;
 import dev.gether.getclan.handler.*;
 import dev.gether.getclan.handler.contextual.DeputyOwnerContextual;
 import dev.gether.getclan.handler.contextual.MemberContextual;
@@ -11,7 +14,7 @@ import dev.gether.getclan.handler.contextual.OwnerContextual;
 import dev.gether.getclan.listener.AsyncPlayerChatListener;
 import dev.gether.getclan.listener.EntityDamageListener;
 import dev.gether.getclan.manager.ClanManager;
-import dev.gether.getclan.cmd.GetClanCmd;
+import dev.gether.getclan.cmd.GetClanPLCmd;
 import dev.gether.getclan.config.Config;
 import dev.gether.getclan.database.MySQL;
 import dev.gether.getclan.listener.PlayerConnectionListener;
@@ -64,19 +67,27 @@ public final class GetClan extends JavaPlugin {
     private MySQL mySQL;
 
     private Config config;
-
+    public LangMessage lang;
     private LiteCommands<CommandSender> liteCommands;
 
     private ClanPlaceholder clanPlaceholder;
 
     // scheduler TOP
     private TopRankScheduler topRankScheduler;
-    @Override
-    public void onLoad() {
+
+    public void loadConfig() {
 
         config = ConfigManager.create(Config.class, (it) -> {
             it.withConfigurer(new YamlBukkitConfigurer(), new SerdesBukkit());
             it.withBindFile(new File(getDataFolder(), "config.yml"));
+            it.withRemoveOrphans(true);
+            it.saveDefaults();
+            it.load(true);
+        });
+
+        lang = ConfigManager.create(LangMessage.class, (it) -> {
+            it.withConfigurer(new YamlBukkitConfigurer(), new SerdesBukkit());
+            it.withBindFile(new File(getDataFolder(), "lang/"+config.langType.name()+".yml"));
             it.withRemoveOrphans(true);
             it.saveDefaults();
             it.load(true);
@@ -87,6 +98,9 @@ public final class GetClan extends JavaPlugin {
     public void onEnable() {
 
         instance = this;
+
+        // implement configuration
+        loadConfig();
 
         if (!setupEconomy() ) {
             getServer().getLogger().severe(String.format("[%s] - Disabled due to no Vault dependency found!", getDescription().getName()));
@@ -166,6 +180,7 @@ public final class GetClan extends JavaPlugin {
     public void reloadPlugin(LiteSender sender)
     {
         config.load();
+        lang.load();
         MessageUtil.sendMessage(sender, "&aPomyslnie przeladowano plugin!");
     }
 
@@ -196,25 +211,25 @@ public final class GetClan extends JavaPlugin {
 
         this.liteCommands = LiteBukkitFactory.builder(this.getServer(), "getclan")
                 .commandInstance(
-                        new GetClanCmd(this)
+                        (config.langType == LangType.PL ? new GetClanPLCmd(this) : new GetClanENCmd(this))
                 )
 
                 // contextual bind
                 .contextualBind(Owner.class, new OwnerContextual(this))
                 .contextualBind(DeputyOwner.class, new DeputyOwnerContextual(this))
                 .contextualBind(Member.class, new MemberContextual(this))
-                .contextualBind(Player.class, new BukkitOnlyPlayerContextual<>(config.langPlayerNotOnline))
+                .contextualBind(Player.class, new BukkitOnlyPlayerContextual<>(lang.langPlayerNotOnline))
 
 
                 // args
-                .argument(Player.class, new BukkitPlayerArgument<>(this.getServer(), config.langPlayerNotOnline))
-                .argument(Clan.class, new ClanTagArgument(config, clansManager))
-                .argument(Owner.class, new OwnerArgument(config, userManager))
-                .argument(User.class, new UserArgument(config, userManager))
+                .argument(Player.class, new BukkitPlayerArgument<>(this.getServer(), lang.langPlayerNotOnline))
+                .argument(Clan.class, new ClanTagArgument(lang, clansManager))
+                .argument(Owner.class, new OwnerArgument(lang, userManager))
+                .argument(User.class, new UserArgument(lang, userManager))
 
                 // handlers
-                .permissionHandler(new PermissionMessage(config))
-                .invalidUsageHandler(new InvalidUsage(config))
+                .permissionHandler(new PermissionMessage(lang))
+                .invalidUsageHandler(new InvalidUsage(lang))
 
                 .register();
 
@@ -243,6 +258,10 @@ public final class GetClan extends JavaPlugin {
 
     public Economy getEconomy() {
         return economy;
+    }
+
+    public LangMessage getLang() {
+        return lang;
     }
 
     public ClanManager getClansManager() {

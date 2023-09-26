@@ -24,12 +24,12 @@ import java.util.regex.Pattern;
 
 @Route(name = "getclan", aliases = "klan")
 @Permission("getclan.use")
-public class GetClanCmd {
+public class GetClanPLCmd {
 
     private final GetClan plugin;
     private Pattern pattern = Pattern.compile("^[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ0-9]+$");
 
-    public GetClanCmd(GetClan plugin) {
+    public GetClanPLCmd(GetClan plugin) {
         this.plugin = plugin;
     }
     @Execute(route = "usun")
@@ -47,7 +47,7 @@ public class GetClanCmd {
         Matcher matcher = pattern.matcher(tag);
         if(!matcher.matches())
         {
-            MessageUtil.sendMessage(player, plugin.getConfigPlugin().langInvalidCharacter);
+            MessageUtil.sendMessage(player, plugin.lang.langInvalidCharacter);
             return;
         }
         plugin.getClansManager().createClan(player, tag);

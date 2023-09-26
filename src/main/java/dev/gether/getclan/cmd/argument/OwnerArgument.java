@@ -1,6 +1,7 @@
 package dev.gether.getclan.cmd.argument;
 
 import dev.gether.getclan.config.Config;
+import dev.gether.getclan.config.lang.LangMessage;
 import dev.gether.getclan.manager.UserManager;
 import dev.gether.getclan.model.User;
 import dev.gether.getclan.model.role.Owner;
@@ -19,12 +20,10 @@ import java.util.stream.Collectors;
 public class OwnerArgument implements OneArgument<Owner> {
 
     private final UserManager userManager;
+    private LangMessage lang;
 
-
-    private Config config;
-
-    public OwnerArgument(Config config, UserManager userManager) {
-        this.config = config;
+    public OwnerArgument(LangMessage lang, UserManager userManager) {
+        this.lang = lang;
         this.userManager = userManager;
     }
 
@@ -33,13 +32,13 @@ public class OwnerArgument implements OneArgument<Owner> {
         Player player = Bukkit.getPlayer(argument);
         if(player==null)
         {
-            return Result.error(config.langPlayerNotOnline);
+            return Result.error(lang.langPlayerNotOnline);
         }
 
         User user = userManager.getUserData().get(player.getUniqueId());
         if(!user.hasClan())
         {
-            return Result.error(config.langNoClan);
+            return Result.error(lang.langNoClan);
         }
         return Result.ok(new Owner(player, user.getClan()));
     }

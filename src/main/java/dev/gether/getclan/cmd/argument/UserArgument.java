@@ -1,6 +1,7 @@
 package dev.gether.getclan.cmd.argument;
 
 import dev.gether.getclan.config.Config;
+import dev.gether.getclan.config.lang.LangMessage;
 import dev.gether.getclan.manager.UserManager;
 import dev.gether.getclan.model.User;
 import dev.rollczi.litecommands.argument.ArgumentName;
@@ -18,10 +19,10 @@ import java.util.stream.Collectors;
 public class UserArgument implements OneArgument<User> {
 
     private final UserManager userManager;
-    private Config config;
+    private LangMessage lang;
 
-    public UserArgument(Config config, UserManager userManager) {
-        this.config = config;
+    public UserArgument(LangMessage lang, UserManager userManager) {
+        this.lang = lang;
         this.userManager = userManager;
     }
 
@@ -30,7 +31,7 @@ public class UserArgument implements OneArgument<User> {
         Player player = Bukkit.getPlayer(argument);
         if(player==null)
         {
-            return Result.error(config.langPlayerNotOnline);
+            return Result.error(lang.langPlayerNotOnline);
         }
 
         User user = userManager.getUserData().get(player.getUniqueId());

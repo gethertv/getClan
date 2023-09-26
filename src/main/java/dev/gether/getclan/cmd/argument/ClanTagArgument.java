@@ -1,6 +1,7 @@
 package dev.gether.getclan.cmd.argument;
 
 import dev.gether.getclan.config.Config;
+import dev.gether.getclan.config.lang.LangMessage;
 import dev.gether.getclan.manager.ClanManager;
 import dev.gether.getclan.model.Clan;
 import dev.rollczi.litecommands.argument.ArgumentName;
@@ -20,17 +21,17 @@ public class ClanTagArgument implements OneArgument<Clan> {
     private final ClanManager clansManager;
 
 
-    private Config config;
+    private LangMessage lang;
 
-    public ClanTagArgument(Config config, ClanManager clansManager) {
-        this.config = config;
+    public ClanTagArgument(LangMessage lang, ClanManager clansManager) {
+        this.lang = lang;
         this.clansManager = clansManager;
     }
 
     @Override
     public Result<Clan, Object> parse(LiteInvocation invocation, String argument) {
         return Option.of(this.clansManager.getClan(argument))
-                .toResult(config.langClanNotExists);
+                .toResult(lang.langClanNotExists);
     }
     @Override
     public List<Suggestion> suggest(LiteInvocation invocation) {
