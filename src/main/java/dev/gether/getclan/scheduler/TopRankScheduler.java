@@ -38,7 +38,7 @@ public class TopRankScheduler extends BukkitRunnable {
 
         prepareQueue();
 
-        Collection<User> values = userManager.getUserData().values();
+        Collection<User> values = new ArrayList<>(userManager.getUserData().values());
         for (User user : values)
         {
             OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(user.getUuid());

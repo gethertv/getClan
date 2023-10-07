@@ -520,9 +520,9 @@ public class ClanManager {
     public void removeDeputy(Owner owner) {
         Clan clan = owner.getClan();
         Player player = owner.getPlayer();
-        if(!deputyIsEmpty(clan))
+        if(deputyIsEmpty(clan))
         {
-            MessageUtil.sendMessage(player, lang.langPlayerNotYourClan);
+            MessageUtil.sendMessage(player, lang.langNoDeputy);
             return;
         }
         DeleteDeputyEvent event = new DeleteDeputyEvent(clan, clan.getDeputyOwnerUUID());

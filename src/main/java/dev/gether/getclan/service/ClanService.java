@@ -45,7 +45,10 @@ public class ClanService extends BaseService {
                 String deputyUuid = resultSet.getString("deputy_uuid");
 
                 UUID ownerUUID = UUID.fromString(ownerUuid);
-                UUID deputyUUID = deputyUuid != null ? UUID.fromString(deputyUuid) : null;
+                UUID deputyUUID = null;
+                if(deputyUuid != null && deputyUuid.length() > 0) {
+                    deputyUUID = UUID.fromString(deputyUuid);
+                }
 
                 plugin.getClansManager().getClansData().put(tag.toUpperCase(), new Clan(tag, ownerUUID, deputyUUID));
                 countClan++;
@@ -58,7 +61,11 @@ public class ClanService extends BaseService {
 
     public void updateClan(Clan clan) {
         String sql = "UPDATE " + tableClans + " SET owner_uuid = ? , deputy_uuid = ? WHERE tag = ?";
-        List<Object> parameters = Arrays.asList(clan.getOwnerUUID().toString(), clan.getDeputyOwnerUUID().toString(), clan.getTag());
+        List<Object> parameters = Arrays.asList(
+                (clan.getOwnerUUID()!=null ? clan.getOwnerUUID().toString() : ""),
+                (clan.getDeputyOwnerUUID() != null ? clan.getDeputyOwnerUUID().toString() : ""),
+                clan.getTag()
+        );
         queueService.addQueue(new QueuedQuery(sql, parameters));
     }
 

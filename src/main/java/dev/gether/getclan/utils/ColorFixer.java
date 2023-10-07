@@ -12,7 +12,7 @@ public class ColorFixer {
 
     static Pattern pattern = Pattern.compile("#[a-fA-F0-9]{6}");
 
-    public static java.util.List<String> addColors(List<String> input) {
+    public static List<String> addColors(List<String> input) {
         if (input == null || input.isEmpty()) {
             return input;
         }

@@ -125,7 +125,7 @@ public class Clan {
     }
 
     public boolean isDeputy(UUID uniqueId) {
-        return deputyOwnerUUID.equals(uniqueId);
+       return (deputyOwnerUUID != null && deputyOwnerUUID.equals(uniqueId));
     }
 
 

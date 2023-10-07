@@ -44,9 +44,11 @@ public class LangMessage extends OkaeriConfig {
     public String langDeputyDelete = "&4⚐ | &cUsunięto zestępce lidera!";
     public String langSetDeputyOwner = "&2⚐ | &aUstawiono zestępce lidera!";
     public String langIsDeputy = "&4⚐ | &cPodany gracz jest już zastępcą lidera!";
+    public String langNoDeputy = "&4⚐ | &cTwój klan nie posiada zastępcy lidera!";
     public String langBroadcastDeleteClan = "&4⚐ | &cKlan &8[&4{tag}&8] &czostał usunięty przez &4{player}&c!";
     public String langBroadcastCreateClan = "&2⚐ | &aKlan &8[&2{tag}&8] &azostał utworzony przez &2{player}&a!";
     public String langBroadcastDeathInfo = "&4☠ | &6{victim}&8(&c-{victim-points}&8) &7został zabity przez &6{killer}&8(&a+{killer-points}&8)";
+    public String langBroadcastDeathNoVictimInfo = "&4☠ | &6{victim}&7 popełnił samobójstwo!";
     public String langBroadcastCreateAlliance = "#008cff⚐ | #2eb2ffKlan &8[#008cff{first-clan}&8] #2eb2ffzawarł sojusz z &8[#008cff{second-clan}&8]";
     public String langBroadcastDisbandAlliance = "#008cff⚐ | #2eb2ffKlan &8[#008cff{first-clan}&8] #2eb2ffzerwał sojusz z &8[#008cff{second-clan}&8]";
     public String langNoPermission = "&4⚐ | &cBrak uprawnień! &8(&f{permission}&8)";
@@ -124,6 +126,8 @@ public class LangMessage extends OkaeriConfig {
         langBroadcastDeleteClan = "&4⚐ | &cClan &8[{tag}&8] &chas been disbanded by &4{player}&c!";
         langBroadcastCreateClan = "&2⚐ | &aClan &8[{tag}&8] &ahas been created by &2{player}&a!";
         langBroadcastDeathInfo = "&4☠ | &6{victim}&8(&c-{victim-points}&8) &7was killed by &6{killer}&8(&a+{killer-points}&8)";
+        langBroadcastDeathNoVictimInfo = "&4☠ | &6{victim}&7 committed suicide!";
+        langNoDeputy = "&4☠ | &cYour clan does not have a deputy leader!";
         langBroadcastCreateAlliance = "#008cff⚐ | #2eb2ffClan &8[#008cff{first-clan}&8] #2eb2ffhas formed an alliance with &8[#008cff{second-clan}&8]";
         langBroadcastDisbandAlliance = "#008cff⚐ | #2eb2ffClan &8[#008cff{first-clan}&8] #2eb2ffhas broken the alliance with &8[#008cff{second-clan}&8]";
         langNoPermission = "&4⚐ | &cInsufficient permissions! &8(&f{permission}&8)";

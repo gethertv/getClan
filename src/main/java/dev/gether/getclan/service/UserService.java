@@ -26,6 +26,8 @@ public class UserService extends BaseService {
     }
 
     public void updateUser(UUID uuid, User user) {
+        if(user==null) return;
+
         String sql = "UPDATE "+tableUsers+" SET kills = ? , deaths = ? , points = ? , clan_tag = ? WHERE uuid = ?";
 
         String clan = (user.getClan()!=null ? user.getClan().getTag() : "");

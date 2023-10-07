@@ -28,6 +28,10 @@ public class Config extends OkaeriConfig {
     @Comment("Czy ma być włączone pvp dla sojuszników")
     @Comment("Enable alliance PvP")
     public boolean pvpAlliance = true;
+
+    @Comment("Czy ma być włączona wiadomość po śmierci")
+    @Comment("Enable broadcast message after the death")
+    public boolean deathMessage = true;
     @Comment("Limit osób w klanie ")
     @Comment("Clan member limit")
     public Map<String, Integer> permissionLimitMember = Map.of("getclan.default", 5);
@@ -37,6 +41,7 @@ public class Config extends OkaeriConfig {
     @Comment("Co ile sekund nadal mozna zabic tego samego gracza")
     @Comment("Cooldown time in seconds for killing the same player")
     public int cooldown = 300;
+
     @Comment("Czy wlaczyc platne tworzenie klanu (true | false)")
     @Comment("Enable paid clan creation (true | false)")
     public boolean enablePayment = true;

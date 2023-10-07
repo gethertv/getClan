@@ -6,7 +6,7 @@
 
     <groupId>dev.gether</groupId>
     <artifactId>getClan</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.2</version>
     <packaging>jar</packaging>
 
     <name>getClan</name>

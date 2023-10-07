@@ -11,8 +11,10 @@ import dev.gether.getclan.utils.MessageUtil;
 import dev.gether.getclan.utils.SystemPoint;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 
@@ -32,21 +34,40 @@ public class PlayerDeathListener implements Listener {
         this.config = plugin.getConfigPlugin();
         this.lang = plugin.lang;
     }
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onDeath(PlayerDeathEvent event)
     {
         Player player = event.getEntity();
         Player killer = player.getKiller();
-        if(killer == null)
-            return;
 
         UserManager userManager = plugin.getUserManager();
         User userDeath = userManager.getUserData().get(player.getUniqueId());
-        User userKiller = userManager.getUserData().get(killer.getUniqueId());
-        if(userDeath == null || userKiller == null)
+
+        if(userDeath == null)
             return;
 
+        // increase death
         userDeath.increaseDeath();
+
+        if(killer == null) {
+            // message after the death
+            if(!config.deathMessage)
+                return;
+
+            MessageUtil.broadcast(
+                    ColorFixer.addColors(
+                            lang.langBroadcastDeathNoVictimInfo
+                                    .replace("{victim}", player.getName())
+                    )
+            );
+            return;
+        }
+
+        User userKiller = userManager.getUserData().get(killer.getUniqueId());
+        if(userKiller == null)
+            return;
+
+
         userKiller.increaseKill();
 
         if (config.systemAntiabuse) {
@@ -82,7 +103,12 @@ public class PlayerDeathListener implements Listener {
             userKiller.addPoint(killerPointAdd);
             userDeath.takePoint(deathPointTake);
         }
-        event.deathMessage(Component.text(
+
+        // message after the death
+        if(!config.deathMessage)
+            return;
+
+        MessageUtil.broadcast(
                 ColorFixer.addColors(
                         lang.langBroadcastDeathInfo
                                 .replace("{victim}", player.getName())
@@ -90,7 +116,7 @@ public class PlayerDeathListener implements Listener {
                                 .replace("{victim-points}", String.valueOf(deathPointTake))
                                 .replace("{killer-points}", String.valueOf(killerPointAdd))
                 )
-        ));
+        );
     }
 
 }
