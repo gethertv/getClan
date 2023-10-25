@@ -117,8 +117,8 @@ public class PlayerDeathListener implements Listener {
                         lang.langBroadcastDeathInfo
                                 .replace("{victim}", player.getName())
                                 .replace("{killer}", killer.getName())
-                                .replace("{victim-points}", String.valueOf(deathPointTake))
-                                .replace("{killer-points}", String.valueOf(killerPointAdd))
+                                .replace("{victim-points}", String.valueOf(pointsChangeUserEvent.getPointVictim()))
+                                .replace("{killer-points}", String.valueOf(pointsChangeUserEvent.getPointKiller()))
                 )
         );
     }
