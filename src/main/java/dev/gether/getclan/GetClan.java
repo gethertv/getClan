@@ -32,6 +32,7 @@ import dev.gether.getclan.service.UserService;
 import dev.gether.getclan.manager.UserManager;
 import dev.gether.getclan.utils.MessageUtil;
 import dev.rollczi.litecommands.LiteCommands;
+import dev.rollczi.litecommands.LiteCommandsBuilder;
 import dev.rollczi.litecommands.bukkit.LiteBukkitFactory;
 import dev.rollczi.litecommands.bukkit.tools.BukkitOnlyPlayerContextual;
 import dev.rollczi.litecommands.bukkit.tools.BukkitPlayerArgument;
@@ -209,7 +210,7 @@ public final class GetClan extends JavaPlugin {
     public void registerCmd()
     {
 
-        this.liteCommands = LiteBukkitFactory.builder(this.getServer(), "getclan")
+       this.liteCommands = LiteBukkitFactory.builder(this.getServer(), "getclan")
                 .commandInstance(
                         (config.langType == LangType.PL ? new GetClanPLCmd(this) : new GetClanENCmd(this))
                 )

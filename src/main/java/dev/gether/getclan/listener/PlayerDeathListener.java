@@ -3,6 +3,7 @@ package dev.gether.getclan.listener;
 import dev.gether.getclan.GetClan;
 import dev.gether.getclan.config.Config;
 import dev.gether.getclan.config.lang.LangMessage;
+import dev.gether.getclan.event.PointsChangeUserEvent;
 import dev.gether.getclan.model.AntySystemRank;
 import dev.gether.getclan.model.User;
 import dev.gether.getclan.manager.UserManager;
@@ -93,15 +94,17 @@ public class PlayerDeathListener implements Listener {
         int newPointDeath = SystemPoint.calculateEloRating(userDeath.getPoints(), userKiller.getPoints(), 0);
         int newPointKiller = SystemPoint.calculateEloRating(userKiller.getPoints(), userDeath.getPoints(), 1);
 
-
         int deathPointTake = userDeath.getPoints()-newPointDeath;
         int killerPointAdd = newPointKiller-userKiller.getPoints();
 
+        PointsChangeUserEvent pointsChangeUserEvent = new PointsChangeUserEvent(killer, player, killerPointAdd, deathPointTake);
+        if(pointsChangeUserEvent.isCancelled())
+            return;
 
         if(newPointDeath>=0)
         {
-            userKiller.addPoint(killerPointAdd);
-            userDeath.takePoint(deathPointTake);
+            userKiller.addPoint(pointsChangeUserEvent.getPointKiller());
+            userDeath.takePoint(pointsChangeUserEvent.getPointVictim());
         }
 
         // message after the death

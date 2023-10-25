@@ -19,7 +19,6 @@ public class MySQL {
 
     private final GetClan plugin;
     private MySqlConfig mySqlConfig;
-
     private String host;
     private String username;
     private String password;
