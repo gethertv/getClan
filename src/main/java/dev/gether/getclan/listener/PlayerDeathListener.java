@@ -98,6 +98,7 @@ public class PlayerDeathListener implements Listener {
         int killerPointAdd = newPointKiller-userKiller.getPoints();
 
         PointsChangeUserEvent pointsChangeUserEvent = new PointsChangeUserEvent(killer, player, killerPointAdd, deathPointTake);
+        Bukkit.getPluginManager().callEvent(pointsChangeUserEvent);
         if(pointsChangeUserEvent.isCancelled())
             return;
 
