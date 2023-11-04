@@ -40,7 +40,7 @@ public class ClanManager {
     public void setOwner(Owner owner, Player target) {
         Clan clan = owner.getClan();
         Player player = owner.getPlayer();
-        if(!isSame(player, target))
+        if(isSame(player, target))
         {
             MessageUtil.sendMessage(player, lang.langCannotChangeToYourSelf);
             return;
