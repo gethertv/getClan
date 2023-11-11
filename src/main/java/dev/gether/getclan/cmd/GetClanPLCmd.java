@@ -75,8 +75,8 @@ public class GetClanPLCmd {
         plugin.getClansManager().inviteUser(deputyOwner, target);
     }
     @Execute(route = "wyrzuc")
-    public void kickUser(DeputyOwner deputyOwner, @Arg @Name("gracz") Player target) {
-        plugin.getClansManager().kickUser(deputyOwner, target);
+    public void kickUser(DeputyOwner deputyOwner, @Arg @Name("nickname") String username) {
+        plugin.getClansManager().kickUser(deputyOwner, username);
     }
 
     @Execute(route = "sojusz")
@@ -89,12 +89,36 @@ public class GetClanPLCmd {
         plugin.getClansManager().joinClan(player, clan);
     }
 
+    @Execute(route = "pvp")
+    public void changePvpStatusClan(DeputyOwner deputyOwner) {
+        plugin.getClansManager().changePvpStatus(deputyOwner);
+    }
+
     @Execute(route = "reload")
     @Permission("getclan.admin")
     public void reloadConfig(LiteSender sender)
     {
         plugin.reloadPlugin(sender);
     }
+    @Execute(route = "admin dolacz")
+    @Permission("getclan.admin")
+    public void adminForceJoinUser(LiteSender sender, @Arg @Name("gracz") User user, @Arg @Name("tag") Clan clan) {
+        plugin.getClansManager().forceJoin(sender, user, clan);
+    }
+
+    @Execute(route = "admin wyrzuc")
+    @Permission("getclan.admin")
+    public void adminForceKickUser(LiteSender sender, @Arg @Name("gracz") User user) {
+        plugin.getClansManager().forceKickUser(sender, user);
+    }
+
+    @Execute(route = "admin setlider")
+    @Permission("getclan.admin")
+    public void adminSetOwner(LiteSender sender, @Arg @Name("nickname") String username) {
+        plugin.getClansManager().forceSetOwner(sender, username);
+    }
+
+
     @Execute(route = "admin reset all")
     @Permission("getclan.admin")
     public void adminReset(LiteSender sender, @Arg @Name("gracz") User user) {
@@ -154,8 +178,8 @@ public class GetClanPLCmd {
     }
     @Execute(route = "admin usun klan")
     @Permission("getclan.admin")
-    public void adminRemove(LiteSender sender, @Arg @Name("gracz") Owner owner) {
-        plugin.getClansManager().deleteClan(owner);
+    public void adminRemove(LiteSender sender, @Arg @Name("tag") Clan clan) {
+        plugin.getClansManager().deleteClanByAdmin(sender, clan);
         MessageUtil.sendMessage(sender, "&aPomyslnie usunieto klan");
     }
 

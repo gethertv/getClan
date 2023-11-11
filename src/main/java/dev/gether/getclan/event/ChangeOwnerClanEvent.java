@@ -6,18 +6,20 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.UUID;
+
 
 public class ChangeOwnerClanEvent extends Event {
 
     private static final HandlerList HANDLERS = new HandlerList();
     private final Clan clan;
-    private final Player previousOwner;
-    private final Player newOwner;
+    private final UUID previousOwnerUUID;
+    private final UUID newOwnerUUID;
     private boolean isCancelled;
-    public ChangeOwnerClanEvent(Clan clan, Player previousOwner, Player newOwner) {
+    public ChangeOwnerClanEvent(Clan clan, UUID previousOwnerUUID, UUID newOwnerUUID) {
         this.clan = clan;
-        this.previousOwner = previousOwner;
-        this.newOwner = newOwner;
+        this.previousOwnerUUID = previousOwnerUUID;
+        this.newOwnerUUID = newOwnerUUID;
         this.isCancelled = false;
     }
 
@@ -42,11 +44,11 @@ public class ChangeOwnerClanEvent extends Event {
         return clan;
     }
 
-    public Player getNewOwner() {
-        return newOwner;
+    public UUID getPreviousOwnerUUID() {
+        return previousOwnerUUID;
     }
 
-    public Player getPreviousOwner() {
-        return previousOwner;
+    public UUID getNewOwnerUUID() {
+        return newOwnerUUID;
     }
 }

@@ -130,4 +130,17 @@ public class TopRankScheduler extends BukkitRunnable {
         return OptionalInt.empty();
     }
 
+    public OptionalInt getUserRankByName(String username) {
+        PriorityQueue<PlayerStat> tempQueue = new PriorityQueue<>(pointsStatsQueue);
+        PlayerStat stat = null;
+        int index = 0;
+        while ((stat = tempQueue.poll()) != null) {
+            if (stat.getName().equalsIgnoreCase(username)) {
+                return OptionalInt.of(index);
+            }
+            index++;
+        }
+        return OptionalInt.empty();
+    }
+
 }

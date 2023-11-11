@@ -30,6 +30,8 @@ public class ClanService extends BaseService {
         List<Object> parameters = Arrays.asList(tag);
         queueService.addQueue(new QueuedQuery(sql, parameters));
     }
+
+
     public void loadClans()
     {
         int countClan = 0;
@@ -43,6 +45,7 @@ public class ClanService extends BaseService {
                 String tag = resultSet.getString("tag");
                 String ownerUuid = resultSet.getString("owner_uuid");
                 String deputyUuid = resultSet.getString("deputy_uuid");
+                boolean pvpEnable = resultSet.getBoolean("pvpEnable");
 
                 UUID ownerUUID = UUID.fromString(ownerUuid);
                 UUID deputyUUID = null;
@@ -50,7 +53,7 @@ public class ClanService extends BaseService {
                     deputyUUID = UUID.fromString(deputyUuid);
                 }
 
-                plugin.getClansManager().getClansData().put(tag.toUpperCase(), new Clan(tag, ownerUUID, deputyUUID));
+                plugin.getClansManager().getClansData().put(tag.toUpperCase(), new Clan(tag, ownerUUID, deputyUUID, pvpEnable));
                 countClan++;
             }
         } catch (SQLException sQLException) {
@@ -60,10 +63,11 @@ public class ClanService extends BaseService {
     }
 
     public void updateClan(Clan clan) {
-        String sql = "UPDATE " + tableClans + " SET owner_uuid = ? , deputy_uuid = ? WHERE tag = ?";
+        String sql = "UPDATE " + tableClans + " SET owner_uuid = ? , deputy_uuid = ? , pvpEnable = ? WHERE tag = ?";
         List<Object> parameters = Arrays.asList(
                 (clan.getOwnerUUID()!=null ? clan.getOwnerUUID().toString() : ""),
                 (clan.getDeputyOwnerUUID() != null ? clan.getDeputyOwnerUUID().toString() : ""),
+                clan.isPvpEnable(),
                 clan.getTag()
         );
         queueService.addQueue(new QueuedQuery(sql, parameters));

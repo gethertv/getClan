@@ -75,8 +75,8 @@ public class GetClanENCmd {
         plugin.getClansManager().inviteUser(deputyOwner, target);
     }
     @Execute(route = "kick")
-    public void kickUser(DeputyOwner deputyOwner, @Arg @Name("player") Player target) {
-        plugin.getClansManager().kickUser(deputyOwner, target);
+    public void kickUser(DeputyOwner deputyOwner, @Arg @Name("nickname") String username) {
+        plugin.getClansManager().kickUser(deputyOwner, username);
     }
 
     @Execute(route = "alliance")
@@ -95,6 +95,32 @@ public class GetClanENCmd {
     {
         plugin.reloadPlugin(sender);
     }
+
+    @Execute(route = "admin join")
+    @Permission("getclan.admin")
+    public void adminForceJoinUser(LiteSender sender, @Arg @Name("player") User user, @Arg @Name("tag") Clan clan) {
+        plugin.getClansManager().forceJoin(sender, user, clan);
+    }
+
+    @Execute(route = "admin kick")
+    @Permission("getclan.admin")
+    public void adminForceKickUser(LiteSender sender, @Arg @Name("gracz") User user) {
+        plugin.getClansManager().forceKickUser(sender, user);
+    }
+
+    @Execute(route = "pvp")
+    public void changePvpStatusClan(DeputyOwner deputyOwner) {
+        plugin.getClansManager().changePvpStatus(deputyOwner);
+    }
+
+
+    @Execute(route = "admin setleader")
+    @Permission("getclan.admin")
+    public void adminSetOwner(LiteSender sender, @Arg @Name("nickname") String username) {
+        plugin.getClansManager().forceSetOwner(sender, username);
+    }
+
+
     @Execute(route = "admin reset all")
     @Permission("getclan.admin")
     public void adminReset(LiteSender sender, @Arg @Name("player") User user) {

@@ -6,14 +6,16 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.UUID;
+
 public class PlayerKickClanEvent extends Event {
 
     private static final HandlerList HANDLERS = new HandlerList();
-    private final Player kickedPlayer;
+    private final UUID kickedPlayerUUID;
     private final Clan clan;
     private boolean isCancelled;
-    public PlayerKickClanEvent(Clan clan, Player kickedPlayer) {
-        this.kickedPlayer = kickedPlayer;
+    public PlayerKickClanEvent(Clan clan, UUID kickedPlayerUUID) {
+        this.kickedPlayerUUID = kickedPlayerUUID;
         this.clan = clan;
     }
 
@@ -34,8 +36,8 @@ public class PlayerKickClanEvent extends Event {
         this.isCancelled = isCancelled;
     }
 
-    public Player getKickedPlayer() {
-        return kickedPlayer;
+    public UUID getKickedPlayer() {
+        return kickedPlayerUUID;
     }
 
     public Clan getClan() {

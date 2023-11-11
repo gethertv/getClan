@@ -2,6 +2,8 @@ package dev.gether.getclan;
 
 import dev.gether.getclan.bstats.Metrics;
 import dev.gether.getclan.cmd.GetClanENCmd;
+import dev.gether.getclan.cmd.GetGraczPLCmd;
+import dev.gether.getclan.cmd.GetUserENCmd;
 import dev.gether.getclan.cmd.argument.ClanTagArgument;
 import dev.gether.getclan.cmd.argument.OwnerArgument;
 import dev.gether.getclan.cmd.argument.UserArgument;
@@ -126,7 +128,7 @@ public final class GetClan extends JavaPlugin {
         userService = new UserService(mySQL, queueService);
 
         // manager
-        userManager = new UserManager(this, userService);
+        userManager = new UserManager(this, userService, lang);
         clansManager = new ClanManager(this, clanService);
 
         // load data form database
@@ -212,7 +214,8 @@ public final class GetClan extends JavaPlugin {
 
        this.liteCommands = LiteBukkitFactory.builder(this.getServer(), "getclan")
                 .commandInstance(
-                        (config.langType == LangType.PL ? new GetClanPLCmd(this) : new GetClanENCmd(this))
+                        (config.langType == LangType.PL ? new GetClanPLCmd(this) : new GetClanENCmd(this)),
+                        (config.langType == LangType.PL ? new GetGraczPLCmd(this) : new GetUserENCmd(this))
                 )
 
                 // contextual bind
@@ -263,6 +266,10 @@ public final class GetClan extends JavaPlugin {
 
     public LangMessage getLang() {
         return lang;
+    }
+
+    public ClanService getClanService() {
+        return clanService;
     }
 
     public ClanManager getClansManager() {

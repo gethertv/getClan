@@ -36,7 +36,7 @@ public class EntityDamageListener implements Listener {
         Clan victimClan = victimUserData.getClan();
 
         if (victimClan.isMember(attacker.getUniqueId())) {
-            if (!config.pvpClan) {
+            if (!victimClan.isPvpEnable()) {
                 event.setCancelled(true);
             }
             return;

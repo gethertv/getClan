@@ -2,6 +2,8 @@ package dev.gether.getclan.service;
 
 import dev.gether.getclan.GetClan;
 import dev.gether.getclan.database.MySQL;
+import dev.gether.getclan.manager.ClanManager;
+import dev.gether.getclan.model.Clan;
 import dev.gether.getclan.model.QueuedQuery;
 import dev.gether.getclan.model.User;
 import dev.gether.getclan.manager.UserManager;
@@ -31,7 +33,7 @@ public class QueueService {
     public void execute() {
 
         updateData();
-
+        updateClan();
         Connection connection = null;
         try {
             connection = getConnection();
@@ -77,6 +79,14 @@ public class QueueService {
                     plugin.getLogger().severe("Błąd podczas zamykania połączenia: " + e.getMessage());
                 }
             }
+        }
+    }
+
+    private void updateClan() {
+        ClanManager clansManager = plugin.getClansManager();
+        ClanService clanService = plugin.getClanService();
+        for (Clan clan : clansManager.getClansData().values()) {
+            clanService.updateClan(clan);
         }
     }
 

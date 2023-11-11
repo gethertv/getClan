@@ -15,15 +15,18 @@ public class Clan {
     private List<String> alliances = new ArrayList<>();
     private List<String> inviteAlliances = new ArrayList<>();
 
-    public Clan(String tag, UUID ownerUUID, UUID deputyOwnerUUID) {
-        this(tag, ownerUUID);
+    private boolean pvpEnable;
+
+    public Clan(String tag, UUID ownerUUID, UUID deputyOwnerUUID, boolean pvpEnable) {
+        this(tag, ownerUUID, pvpEnable);
         this.deputyOwnerUUID = deputyOwnerUUID;
     }
 
-    public Clan(String tag, UUID ownerUUID) {
+    public Clan(String tag, UUID ownerUUID, boolean pvpEnable) {
         this.tag = tag;
         this.ownerUUID = ownerUUID;
         this.members.add(ownerUUID);
+        this.pvpEnable = pvpEnable;
     }
     public boolean isAlliance(String tag)
     {
@@ -45,6 +48,10 @@ public class Clan {
     public boolean hasInvite(UUID uuid)
     {
         return invitedPlayers.contains(uuid);
+    }
+
+    public boolean isPvpEnable() {
+        return pvpEnable;
     }
 
     public void joinUser(UUID uuid) {
@@ -129,4 +136,7 @@ public class Clan {
     }
 
 
+    public void togglePvp() {
+        pvpEnable = !pvpEnable;
+    }
 }

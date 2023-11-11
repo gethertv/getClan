@@ -8,10 +8,7 @@ import eu.okaeri.configs.yaml.bukkit.serdes.SerdesBukkit;
 import org.bukkit.Bukkit;
 
 import java.io.File;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.Properties;
 import java.util.logging.Level;
 
@@ -37,6 +34,28 @@ public class MySQL {
         setupMysql();
         openConnection();
         createTable();
+
+        // add new column pvpEnable
+        // so for old user check they have a this column
+        checkColumn();
+    }
+
+    private void checkColumn() {
+        final String column = "pvpEnable";
+        try (Statement statement = connection.createStatement()) {
+            ResultSet resultSet = connection.getMetaData().getTables(null, null, tableClans, null);
+            if (resultSet.next()) {
+                // check column exists (pvpEnable)
+                ResultSet columnResultSet = connection.getMetaData().getColumns(null, null, tableClans, column);
+                if (!columnResultSet.next()) {
+                    // if column not exists so add it
+                    String addColumnQuery = "ALTER TABLE " + tableClans + " ADD COLUMN " + column + " BOOLEAN";
+                    statement.executeUpdate(addColumnQuery);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     private void loadConfig() {
@@ -95,7 +114,8 @@ public class MySQL {
                     + "kills INT(11) DEFAULT 0,"
                     + "deaths INT(11) DEFAULT 0,"
                     + "points INT(11) DEFAULT 0,"
-                    + "clan_tag VARCHAR(100))";
+                    + "clan_tag VARCHAR(100),"
+                    + "pvpEnable BOOLEAN)";
 
 
             String createAllianceTable = "CREATE TABLE IF NOT EXISTS " + tableAlliance + " ("

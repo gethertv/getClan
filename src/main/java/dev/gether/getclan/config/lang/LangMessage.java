@@ -1,6 +1,5 @@
 package dev.gether.getclan.config.lang;
 
-import dev.gether.getclan.GetClan;
 import eu.okaeri.configs.OkaeriConfig;
 import eu.okaeri.configs.annotation.Comment;
 import eu.okaeri.configs.exception.OkaeriException;
@@ -52,6 +51,13 @@ public class LangMessage extends OkaeriConfig {
     public String langBroadcastCreateAlliance = "#008cff⚐ | #2eb2ffKlan &8[#008cff{first-clan}&8] #2eb2ffzawarł sojusz z &8[#008cff{second-clan}&8]";
     public String langBroadcastDisbandAlliance = "#008cff⚐ | #2eb2ffKlan &8[#008cff{first-clan}&8] #2eb2ffzerwał sojusz z &8[#008cff{second-clan}&8]";
     public String langNoPermission = "&4⚐ | &cBrak uprawnień! &8(&f{permission}&8)";
+    public String langClanPvpEnable = "&4⚐ | &cPvp dla klanu zostało włączone";
+    public String langClanPvpDisable = "&4⚐ | &cPvp dla klanu zostało wyłączone";
+    public String langAdminHasClan = "&4⚐ | &cPodany gracz posiada klan!";
+    public String langAdminDeleteClan = "&4⚐ | &cPomyślnie usunięto klan!";
+
+    public String langAdminUserNoClan = "&4⚐ | &cPodany gracz nie posiada klanu!";
+    public String langadminSuccessfullySetOwner = "&4⚐ | &cPomyślnie ustawiono gracza liderem klanu!";
     public List<String> langInfoClan = Arrays.asList(
             "&7",
             "&2⚐ | &aKlan: &8[&2{tag}&8]",
@@ -59,6 +65,16 @@ public class LangMessage extends OkaeriConfig {
             "&2⚐ | &aLider: &2{owner}",
             "&2⚐ | &aZastępca: &2{deputy-owner}",
             "&2⚐ | &aCzłonkowie &8(&a{members-online}&8/&a{members-size}&8) - &2{members}",
+            "&7"
+    );
+
+    public List<String> langInfoUser = Arrays.asList(
+            "&7",
+            "&2⚐ | &aNazwa: &2{player}",
+            "&2⚐ | &aZabójstwa: &2{kills}",
+            "&2⚐ | &aŚmierci: &2{deaths}",
+            "&2⚐ | &aPunkty: &2{points} &8(&f#{rank}&8)",
+            "&2⚐ | &aKlan: {tag}",
             "&7"
     );
 
@@ -79,6 +95,8 @@ public class LangMessage extends OkaeriConfig {
             "&8» &6/klan ustawzestepce [nick] &8- &7Ustawia zastępce klanu.",
             "&8» &6/klan usunzastepce &8- &7Usuwa zastępce klanu.",
             "&8» &6/klan usun &8- &7Rozwiązuje aktualny klan.",
+            "&8",
+            "&8» &6/gracz [nazwa] &8- &7Informacje o graczu.",
             "&8",
             "&6!<wiadomosc> &8- &7Czat dla klanu",
             "&6!!<wiadomosc> &8- &7Czat dla sojuszników",
@@ -131,6 +149,12 @@ public class LangMessage extends OkaeriConfig {
         langBroadcastCreateAlliance = "#008cff⚐ | #2eb2ffClan &8[#008cff{first-clan}&8] #2eb2ffhas formed an alliance with &8[#008cff{second-clan}&8]";
         langBroadcastDisbandAlliance = "#008cff⚐ | #2eb2ffClan &8[#008cff{first-clan}&8] #2eb2ffhas broken the alliance with &8[#008cff{second-clan}&8]";
         langNoPermission = "&4⚐ | &cInsufficient permissions! &8(&f{permission}&8)";
+        langClanPvpEnable = "&4⚐ | &cClan PvP has been turned on";
+        langClanPvpDisable = "&4⚐ | &cClan PvP has been turned off";
+        langAdminUserNoClan = "&4⚐ | &cThe user has no clan!";
+        langAdminHasClan = "&4⚐ | &cThis player has the clan";
+        langadminSuccessfullySetOwner = "&4⚐ | &cSuccessfully set new player leader!";
+        langAdminDeleteClan = "&4⚐ | &cSuccessfully deleted the clan!";
         langInfoClan = Arrays.asList(
                 "&7",
                 "&2⚐ | &aClan: &8[&2{tag}&8]",
@@ -140,18 +164,36 @@ public class LangMessage extends OkaeriConfig {
                 "&2⚐ | &aMembers &8(&a{members-online}&8/&a{members-size}&8) - &2{members}",
                 "&7"
         );
+        langInfoUser = Arrays.asList(
+                "&7",
+                "&2⚐ | &aName: &2{player}",
+                "&2⚐ | &aKills: &2{kills}",
+                "&2⚐ | &aDeaths: &2{deaths}",
+                "&2⚐ | &aClan: {tag}",
+                "&7"
+        );
         langUsageCmd = "&7Usage: &6{usage}";
         langUsageList = List.of(
                 "&7",
                 "&c&lClan Command Center:",
-                "&8» &6/clan create [tag] &8- &7Create a clan.",
-                "&8» &6/clan join [tag] &8- &7Join a clan.",
-                "&8» &6/clan leave &8- &7Leave your current clan.",
-                "&8» &6/clan info [tag] &8- &7Show information about a clan.",
-                "&8» &6/clan alliance [tag] &8- &7Send an alliance request.",
-                "&8» &6/clan invite [nickname] &8- &7Invite a player to the clan.",
-                "&8» &6/clan  kick [nickname] &8- &7Kick a player from the clan.",
-                "&8» &6");
+                "&8» &6/clan create [tag] &8- &7Creates a clan.",
+                "&8» &6/clan join [tag] &8- &7Joins a clan.",
+                "&8» &6/clan leave &8- &7Leaves the current clan.",
+                "&8» &6/clan info [tag] &8- &7Shows clan info.",
+                "&8» &6/clan alliance [tag] &8- &7Sends an alliance request.",
+                "&8» &6/clan invite [nickname] &8- &7Invites a player to the clan.",
+                "&8» &6/clan kick [nickname] &8- &7Kicks a player from the clan.",
+                "&8» &6/clan setleader [nickname] &8- &7Changes the clan leader.",
+                "&8» &6/clan setdeputy [nickname] &8- &7Sets a clan deputy.",
+                "&8» &6/clan removedeputy &8- &7Removes the clan deputy.",
+                "&8» &6/clan delete &8- &7Dissolves the current clan.",
+                "&8",
+                "&8» &6/player [name] &8- &7Player information.",
+                "&8",
+                "&6!<message> &8- &7Clan chat",
+                "&6!!<message> &8- &7Alliance chat",
+                "&7");
+
 
 
 
