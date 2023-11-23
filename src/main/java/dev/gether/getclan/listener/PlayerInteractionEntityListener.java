@@ -7,6 +7,7 @@ import dev.gether.getclan.manager.CooldownManager;
 import dev.gether.getclan.manager.UserManager;
 import dev.gether.getclan.model.User;
 import dev.gether.getclan.utils.MessageUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -33,7 +34,10 @@ public class PlayerInteractionEntityListener implements Listener {
     public void onInteract(PlayerInteractEntityEvent event) {
         Player player = event.getPlayer();
 
+        boolean sneaking = player.isSneaking();
         if(event.getRightClicked() instanceof Player clickPlayer) {
+            if(!player.isSneaking())
+                return;
             // disable double action
             if(event.getHand() == EquipmentSlot.OFF_HAND) return;
             // check user has cooldown
