@@ -4,6 +4,7 @@ import dev.gether.getclan.GetClan;
 import dev.gether.getclan.config.Config;
 import dev.gether.getclan.model.Clan;
 import dev.gether.getclan.model.PlayerStat;
+import dev.gether.getclan.model.RankType;
 import dev.gether.getclan.model.User;
 import dev.gether.getclan.utils.ColorFixer;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
@@ -13,6 +14,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
 import java.util.function.Function;
 
 
@@ -56,16 +58,16 @@ public class ClanPlaceholder extends PlaceholderExpansion implements Relational 
             if (args.length >= 4 && isNumber(args[2])) {
                 int top = Integer.parseInt(args[2]);
                 if (identifier.startsWith("top_kill")) {
-                    return handleTopType(plugin.getTopRankScheduler()::getKillStatByIndex, identifier, top);
+                    return handleTopType(RankType.KILLS, identifier, top);
                 }
                 if (identifier.startsWith("top_death")) {
-                    return handleTopType(plugin.getTopRankScheduler()::getDeathStatByIndex, identifier, top);
+                    return handleTopType(RankType.DEATHS, identifier, top);
                 }
                 if (identifier.startsWith("top_points")) {
-                    return handleTopType(plugin.getTopRankScheduler()::getPointStatByIndex, identifier, top);
+                    return handleTopType(RankType.USER_POINTS, identifier, top);
                 }
                 if (identifier.startsWith("top_clan")) {
-                    return handleTopType(plugin.getTopRankScheduler()::getClanStatByIndex, identifier, top);
+                    return handleTopType(RankType.CLAN_POINTS, identifier, top);
                 }
             }
 
@@ -107,6 +109,12 @@ public class ClanPlaceholder extends PlaceholderExpansion implements Relational 
                 case "clan_tag":
                     if (user.getClan() == null) return "";
                     return user.getClan().getTag();
+                case "clan_members_size":
+                    if (user.getClan() == null) return "0";
+                    return String.valueOf(user.getClan().getMembers().size());
+                case "clan_members_online":
+                    if (user.getClan() == null) return "0";
+                    return String.valueOf(plugin.getClansManager().countOnlineMember(user.getClan()));
             }
             return null;
         }
@@ -151,16 +159,17 @@ public class ClanPlaceholder extends PlaceholderExpansion implements Relational 
         return false;
     }
 
-    private String handleTopType(Function<Integer, PlayerStat> fetcher, String identifier, int top) {
-        PlayerStat statByIndex = fetcher.apply(top-1);
-        if(statByIndex==null)
+    private String handleTopType(RankType rankType, String identifier, int top) {
+        Optional<PlayerStat> rank = plugin.getTopRankScheduler().getRank(rankType, top);
+        if(rank.isEmpty())
             return "";
 
+        PlayerStat playerStat = rank.get();
         if (identifier.endsWith("_value")) {
-            return String.valueOf(statByIndex.getInt());
+            return String.valueOf(playerStat.getInt());
         }
         if (identifier.endsWith("_name")) {
-            return String.valueOf(statByIndex.getName());
+            return String.valueOf(playerStat.getName());
         }
         return "";
     }

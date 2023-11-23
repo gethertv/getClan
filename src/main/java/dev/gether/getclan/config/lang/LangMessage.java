@@ -55,6 +55,7 @@ public class LangMessage extends OkaeriConfig {
     public String langClanPvpDisable = "&4⚐ | &cPvp dla klanu zostało wyłączone";
     public String langAdminHasClan = "&4⚐ | &cPodany gracz posiada klan!";
     public String langAdminDeleteClan = "&4⚐ | &cPomyślnie usunięto klan!";
+    public String langSlowDown = "&4⚐ | &cZwolnij...";
 
     public String langAdminUserNoClan = "&4⚐ | &cPodany gracz nie posiada klanu!";
     public String langadminSuccessfullySetOwner = "&4⚐ | &cPomyślnie ustawiono gracza liderem klanu!";
@@ -155,6 +156,7 @@ public class LangMessage extends OkaeriConfig {
         langAdminHasClan = "&4⚐ | &cThis player has the clan";
         langadminSuccessfullySetOwner = "&4⚐ | &cSuccessfully set new player leader!";
         langAdminDeleteClan = "&4⚐ | &cSuccessfully deleted the clan!";
+        langSlowDown = "&4⚐ | &cSlowdown...";
         langInfoClan = Arrays.asList(
                 "&7",
                 "&2⚐ | &aClan: &8[&2{tag}&8]",

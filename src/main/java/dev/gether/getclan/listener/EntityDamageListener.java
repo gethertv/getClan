@@ -18,7 +18,7 @@ public class EntityDamageListener implements Listener {
         this.plugin = plugin;
         this.config = plugin.getConfigPlugin();
     }
-    @EventHandler
+    @EventHandler()
     public void onDamage(EntityDamageByEntityEvent event)
     {
         if (!(event.getEntity() instanceof Player) || !(event.getDamager() instanceof Player)) {

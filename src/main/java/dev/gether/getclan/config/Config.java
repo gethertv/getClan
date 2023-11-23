@@ -52,6 +52,11 @@ public class Config extends OkaeriConfig {
     @Comment("Cost - VAULT | ITEM")
     public double costCreate = 10;
     public ItemStack itemCost = new ItemStack(Material.STONE);
+
+    @Comment("ilość osób potrzebnych do liczenia rankingu klanu")
+    public int membersRequiredForRanking = 3;
+    @Comment("co ma zwracac placeholder gdy klan nie posida tylu czonkow do liczenia pkt")
+    public String placeholderNeedMembers = "&ebrakuje 3 os";
     @Comment("Ograniczenia długości tagu klanu")
     @Comment("Clan tag length restrictions")
     public int clansTagLengthMin = 2;

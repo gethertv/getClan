@@ -105,7 +105,8 @@ public class MySQL {
                     + "id INT(10) AUTO_INCREMENT PRIMARY KEY,"
                     + "tag VARCHAR(10),"
                     + "owner_uuid VARCHAR(100),"
-                    + "deputy_uuid VARCHAR(100))";
+                    + "deputy_uuid VARCHAR(100),"
+                    + "pvpEnable BOOLEAN)";
 
             String createUsersTable = "CREATE TABLE IF NOT EXISTS " + tableUsers + " ("
                     + "id INT(10) AUTO_INCREMENT PRIMARY KEY,"
@@ -114,8 +115,7 @@ public class MySQL {
                     + "kills INT(11) DEFAULT 0,"
                     + "deaths INT(11) DEFAULT 0,"
                     + "points INT(11) DEFAULT 0,"
-                    + "clan_tag VARCHAR(100),"
-                    + "pvpEnable BOOLEAN)";
+                    + "clan_tag VARCHAR(100))";
 
 
             String createAllianceTable = "CREATE TABLE IF NOT EXISTS " + tableAlliance + " ("

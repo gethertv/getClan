@@ -7,11 +7,13 @@ import dev.gether.getclan.model.User;
 import dev.gether.getclan.service.UserService;
 import dev.gether.getclan.utils.ColorFixer;
 import dev.gether.getclan.utils.MessageUtil;
+import dev.rollczi.litecommands.argument.option.Opt;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.UUID;
 
@@ -38,6 +40,8 @@ public class UserManager {
         if(user==null)
         {
             user = new User(player, config.defaultPoints);
+            // add user to system of ranking
+            plugin.getTopRankScheduler().addUser(user);
             userData.put(player.getUniqueId(), user);
             userService.createUser(player);
         }
@@ -68,7 +72,6 @@ public class UserManager {
     public void infoPlayer(Player player, User user) {
         // get player object
         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(user.getUuid());
-
         OptionalInt clanRankIndexByTag = plugin.getTopRankScheduler().getUserRankByName(offlinePlayer.getName());
         int index = 9999;
         if(clanRankIndexByTag.isPresent())
@@ -86,5 +89,13 @@ public class UserManager {
 
 
         MessageUtil.sendMessage(player, infoMessage);
+    }
+
+    public Optional<User> findUserByUUID(UUID uuid) {
+        return Optional.ofNullable(userData.get(uuid));
+    }
+
+    public Optional<User> findUserByPlayer(Player player) {
+        return findUserByUUID(player.getUniqueId());
     }
 }

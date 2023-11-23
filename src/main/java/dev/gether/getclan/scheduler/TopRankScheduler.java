@@ -5,29 +5,23 @@ import dev.gether.getclan.manager.ClanManager;
 import dev.gether.getclan.manager.UserManager;
 import dev.gether.getclan.model.Clan;
 import dev.gether.getclan.model.PlayerStat;
+import dev.gether.getclan.model.RankType;
 import dev.gether.getclan.model.User;
+import dev.rollczi.litecommands.argument.option.Opt;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
-import java.util.stream.IntStream;
 
 public class TopRankScheduler extends BukkitRunnable {
 
     private UserManager userManager;
     private ClanManager clanManager;
+    private Comparator<PlayerStat> comparator = (a, b) -> Integer.compare(b.getInt(), a.getInt());
 
-    private Comparator<PlayerStat> killComparator = (a, b) -> Integer.compare(b.getInt(), a.getInt());
-    private Comparator<PlayerStat> deathComparator = (a, b) -> Integer.compare(b.getInt(), a.getInt());
-    private Comparator<PlayerStat> pointsComparator = (a, b) -> Integer.compare(b.getInt(), a.getInt());
-    private Comparator<PlayerStat> clanComparator = (a, b) -> Integer.compare(b.getInt(), a.getInt());
-
-    private PriorityQueue<PlayerStat> killStatsQueue;
-    private PriorityQueue<PlayerStat> deathStatsQueue;
-    private PriorityQueue<PlayerStat> pointsStatsQueue;
-    private PriorityQueue<PlayerStat> clanStatsQueue;
+    private HashMap<RankType, PriorityQueue<PlayerStat>> rankData = new HashMap<>();
     public TopRankScheduler(UserManager userManager, ClanManager clanManager)
     {
         this.userManager = userManager;
@@ -35,90 +29,94 @@ public class TopRankScheduler extends BukkitRunnable {
     }
     @Override
     public void run() {
-
+        // initialize sort ranking - rank data
         prepareQueue();
 
-        Collection<User> values = new ArrayList<>(userManager.getUserData().values());
-        for (User user : values)
-        {
-            OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(user.getUuid());
-            int death = user.getDeath();
-            int kills = user.getKills();
-            int points = user.getPoints();
-
-            String name = offlinePlayer.getName();
-
-            addStats(name, kills, death, points);
-        }
-        Collection<Clan> valuesClan = clanManager.getClansData().values();
-        for(Clan clan : valuesClan)
-        {
-            addClanStats(clan.getTag(), clanManager.getAveragePoint(clan));
-        }
+        // iplements user and clan
+        implementsUser();
+        implementsClan();
     }
 
-    private void addClanStats(String tag, String averagePoint) {
-        clanStatsQueue.add(new PlayerStat(tag, Integer.parseInt(averagePoint)));
-    }
-
-    private void addStats(String name, int kills, int death, int points) {
-        killStatsQueue.add(new PlayerStat(name, kills));
-        deathStatsQueue.add(new PlayerStat(name, death));
-        pointsStatsQueue.add(new PlayerStat(name, points));
+    private void implementsClan() {
+        Queue<Clan> clanQueue = new LinkedList<>(clanManager.getClansData().values());
+        int size = clanQueue.size();
+        for (int i = 0; i < size; i++) {
+            Clan clan = clanQueue.poll();
+            addClan(clan);
+        }
     }
 
     private void prepareQueue() {
-
-        if(killStatsQueue == null) {
-            killStatsQueue = new PriorityQueue<>(killComparator);
-        } else {
-            killStatsQueue.clear();
-        }
-        if(deathStatsQueue == null) {
-            deathStatsQueue = new PriorityQueue<>(deathComparator);
-        } else {
-            deathStatsQueue.clear();
-        }
-        if(pointsStatsQueue == null) {
-            pointsStatsQueue = new PriorityQueue<>(pointsComparator);
-        } else {
-            pointsStatsQueue.clear();
-        }
-        if(clanStatsQueue == null) {
-            clanStatsQueue = new PriorityQueue<>(clanComparator);
-        } else {
-            clanStatsQueue.clear();
+        rankData.put(RankType.KILLS, new PriorityQueue<>(comparator));
+        rankData.put(RankType.DEATHS, new PriorityQueue<>(comparator));
+        rankData.put(RankType.USER_POINTS, new PriorityQueue<>(comparator));
+        rankData.put(RankType.CLAN_POINTS, new PriorityQueue<>(comparator));
+    }
+    private void implementsUser() {
+        Queue<User> userQueue = new LinkedList<>(userManager.getUserData().values());
+        int queueSize = userQueue.size(); // Zapamiętaj początkowy rozmiar kolejki
+        for (int i = 0; i < queueSize; i++) { // Popraw warunek pętli
+            User user = userQueue.poll();
+            addUser(user);
         }
     }
 
-    public PlayerStat getKillStatByIndex(int index) {
-        return getStatByIndex(killStatsQueue, index);
+    public void addUser(User user) {
+        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(user.getUuid());
+        int death = user.getDeath();
+        int kills = user.getKills();
+        int points = user.getPoints();
+
+        String name = offlinePlayer.getName();
+
+        addStats(name, kills, death, points);
     }
 
-    public PlayerStat getDeathStatByIndex(int index) {
-        return getStatByIndex(deathStatsQueue, index);
+    public void addClan(Clan clan) {
+        // check size of members fulfill threshold to counting a ranking
+        if(!clanManager.doesClanFulfillThreshold(clan)) {
+            return;
+        }
+        String tag = clan.getTag();
+        String averagePoint = clanManager.getAveragePoint(clan);
+
+        PriorityQueue<PlayerStat> playerStats = rankData.get(RankType.CLAN_POINTS);
+        playerStats.add(new PlayerStat(tag, Integer.parseInt(averagePoint)));
     }
 
-    public PlayerStat getPointStatByIndex(int index) {
-        return getStatByIndex(pointsStatsQueue, index);
-    }
-    public PlayerStat getClanStatByIndex(int index) {
-        return getStatByIndex(clanStatsQueue, index);
-    }
-
-    private PlayerStat getStatByIndex(PriorityQueue<PlayerStat> queue, int index) {
-        if (index >= 0 && index < queue.size()) {
-            PriorityQueue<PlayerStat> tempQueue = new PriorityQueue<>(queue);
-            PlayerStat stat = null;
-            for (int i = 0; i <= index; i++) {
-                stat = tempQueue.poll();
+    public void removeClan(Clan clan) {
+        PriorityQueue<PlayerStat> playerStats = rankData.get(RankType.CLAN_POINTS);
+        PriorityQueue<PlayerStat> newQueue = new PriorityQueue<>(playerStats.comparator());
+        for (PlayerStat stat : playerStats) {
+            if (!stat.getName().equals(clan.getTag())) {
+                newQueue.add(stat);
             }
-            return stat;
         }
-        return null;
+        rankData.put(RankType.CLAN_POINTS, newQueue);
     }
+
+
+    private void addStats(String name, int kills, int death, int points) {
+        // kills
+        {
+            PriorityQueue<PlayerStat> playerStats = rankData.get(RankType.KILLS);
+            playerStats.add(new PlayerStat(name, kills));
+        }
+        // deaths
+        {
+            PriorityQueue<PlayerStat> playerStats = rankData.get(RankType.DEATHS);
+            playerStats.add(new PlayerStat(name, death));
+        }
+        // user points
+        {
+            PriorityQueue<PlayerStat> playerStats = rankData.get(RankType.USER_POINTS);
+            playerStats.add(new PlayerStat(name, points));
+        }
+    }
+
     public OptionalInt getClanRankIndexByTag(String tag) {
-        PriorityQueue<PlayerStat> tempQueue = new PriorityQueue<>(clanStatsQueue);
+        PriorityQueue<PlayerStat> playerStats = rankData.get(RankType.CLAN_POINTS);
+        PriorityQueue<PlayerStat> tempQueue = new PriorityQueue<>(playerStats);
         PlayerStat stat = null;
         int index = 0;
         while ((stat = tempQueue.poll()) != null) {
@@ -131,16 +129,29 @@ public class TopRankScheduler extends BukkitRunnable {
     }
 
     public OptionalInt getUserRankByName(String username) {
-        PriorityQueue<PlayerStat> tempQueue = new PriorityQueue<>(pointsStatsQueue);
+        PriorityQueue<PlayerStat> playerStats = rankData.get(RankType.USER_POINTS);
+        PriorityQueue<PlayerStat> tempQueue = new PriorityQueue<>(playerStats);
         PlayerStat stat = null;
         int index = 0;
         while ((stat = tempQueue.poll()) != null) {
-            if (stat.getName().equalsIgnoreCase(username)) {
+            if(stat.getName()==null) {
+                continue;
+            }
+            if (stat.getName().equals(username)) {
                 return OptionalInt.of(index);
             }
             index++;
         }
-        return OptionalInt.empty();
+        return OptionalInt.of(index);
     }
 
+
+    public Optional<PlayerStat> getRank(RankType rankType, int top) {
+        PriorityQueue<PlayerStat> tempQueue = new PriorityQueue<>(rankData.get(rankType));
+        PlayerStat playerStat = null;
+        for (int i = 0; i < top; i++) {
+            playerStat = tempQueue.poll();
+        }
+        return Optional.ofNullable(playerStat);
+    }
 }

@@ -11,6 +11,7 @@ import dev.gether.getclan.model.role.DeputyOwner;
 import dev.gether.getclan.model.role.Member;
 import dev.gether.getclan.model.role.Owner;
 import dev.gether.getclan.service.ClanService;
+import dev.gether.getclan.utils.ColorFixer;
 import dev.gether.getclan.utils.ConsoleColor;
 import dev.gether.getclan.utils.ItemUtil;
 import dev.gether.getclan.utils.MessageUtil;
@@ -26,9 +27,7 @@ public class ClanManager {
     private final GetClan plugin;
     private Config config;
     private LangMessage lang;
-
     private ClanService clanService;
-
     private HashMap<String, Clan> clansData = new HashMap<>();
 
     public ClanManager(GetClan plugin, ClanService clanService)
@@ -86,7 +85,12 @@ public class ClanManager {
     }
 
     public void forceSetOwner(LiteSender sender, String username) {
-        UUID newOwnerUUID = getPlayerUUIDByNickname(username);
+        Optional<UUID> uuidOptional = getPlayerUUIDByNickname(username);
+        if(uuidOptional.isEmpty()) {
+            MessageUtil.sendMessage(sender, lang.langPlayerNotOnline);
+            return;
+        }
+        UUID newOwnerUUID = uuidOptional.get();
         User user = plugin.getUserManager().getUserData().get(newOwnerUUID);
         if(!user.hasClan()) {
             MessageUtil.sendMessage(sender, lang.langAdminUserNoClan);
@@ -145,7 +149,6 @@ public class ClanManager {
                             .replace("{tag}", clan.getTag())
 
             );
-            return;
         }
     }
 
@@ -227,7 +230,7 @@ public class ClanManager {
         return String.join(", ", membersText);
     }
 
-    private int countOnlineMember(Clan clan) {
+    public int countOnlineMember(Clan clan) {
         int online = 0;
         for (UUID uuid : clan.getMembers()) {
             Player player = Bukkit.getPlayer(uuid);
@@ -244,7 +247,11 @@ public class ClanManager {
         if(user==null || !user.hasClan())
             return config.nonePointsClan;
 
-        return getAveragePoint(user.getClan());
+        Clan clan = user.getClan();
+        if(!doesClanFulfillThreshold(clan)) {
+            return ColorFixer.addColors(config.placeholderNeedMembers);
+        }
+        return getAveragePoint(clan);
     }
 
     public String getAveragePoint(Clan clan)
@@ -345,7 +352,7 @@ public class ClanManager {
 
         DeleteClanEvent event = new DeleteClanEvent(player, clan);
         Bukkit.getPluginManager().callEvent(event);
-        if (!event.isCancelled()) {;
+        if (!event.isCancelled()) {
             return deleteClan(clan, player);
         }
 
@@ -368,6 +375,8 @@ public class ClanManager {
         }
         clanService.deleteClan(tag);
         deleteClan(tag);
+        // remove clan to system ranking
+        plugin.getTopRankScheduler().removeClan(clan);
         // if player is null that mean clan is removed by admin
         if(player!=null) {
             MessageUtil.broadcast(lang.langBroadcastDeleteClan
@@ -422,12 +431,15 @@ public class ClanManager {
             clansData.put(tag.toUpperCase(), clan);
             user.setClan(clan);
             clanService.createClan(clan, player);
+            // add clan to system ranking
+            plugin.getTopRankScheduler().addClan(clan);
             MessageUtil.broadcast(lang.langBroadcastCreateClan
                             .replace("{tag}", tag)
                             .replace("{player}", player.getName())
             );
 
         }
+
     }
 
     private boolean checkPayments(Player player) {
@@ -473,8 +485,12 @@ public class ClanManager {
         Clan clan = deputyOwner.getClan();
         Player player = deputyOwner.getPlayer();
 
-        UUID targetUUID = getPlayerUUIDByNickname(nickname);
-
+        Optional<UUID> optionalUUID = getPlayerUUIDByNickname(nickname);
+        if(optionalUUID.isEmpty()) {
+            MessageUtil.sendMessage(player, lang.langPlayerNotOnline);
+            return;
+        }
+        UUID targetUUID = optionalUUID.get();
         if(!isYourClan(clan, targetUUID))
         {
             MessageUtil.sendMessage(player, lang.langPlayerNotYourClan);
@@ -507,13 +523,16 @@ public class ClanManager {
             return;
         }
     }
-    private UUID getPlayerUUIDByNickname(String nickname) {
+    private Optional<UUID> getPlayerUUIDByNickname(String nickname) {
         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayerIfCached(nickname);
         if(offlinePlayer!=null) {
-            return offlinePlayer.getUniqueId();
+            return Optional.of(offlinePlayer.getUniqueId());
         }
         Player player = Bukkit.getPlayer(nickname);
-        return player.getUniqueId();
+        if(player==null) {
+            return Optional.empty();
+        }
+        return Optional.of(player.getUniqueId());
     }
 
     private boolean isSame(Player player, UUID targetUUID) {
@@ -668,6 +687,10 @@ public class ClanManager {
             //clanService.updateClan(clan);
             MessageUtil.sendMessage(player, lang.langSetDeputyOwner);
         }
+    }
+
+    public boolean doesClanFulfillThreshold(Clan clan) {
+        return clan.getMembers().size() >= config.membersRequiredForRanking;
     }
     private boolean isLimitAlliance(Clan clan) {
         return clan.getAlliances().size() >= config.limitAlliance;

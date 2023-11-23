@@ -2,39 +2,38 @@ package dev.gether.getclan;
 
 import dev.gether.getclan.bstats.Metrics;
 import dev.gether.getclan.cmd.GetClanENCmd;
+import dev.gether.getclan.cmd.GetClanPLCmd;
 import dev.gether.getclan.cmd.GetGraczPLCmd;
 import dev.gether.getclan.cmd.GetUserENCmd;
 import dev.gether.getclan.cmd.argument.ClanTagArgument;
 import dev.gether.getclan.cmd.argument.OwnerArgument;
 import dev.gether.getclan.cmd.argument.UserArgument;
+import dev.gether.getclan.config.Config;
 import dev.gether.getclan.config.lang.LangMessage;
 import dev.gether.getclan.config.lang.LangType;
-import dev.gether.getclan.handler.*;
+import dev.gether.getclan.database.MySQL;
+import dev.gether.getclan.handler.InvalidUsage;
+import dev.gether.getclan.handler.PermissionMessage;
+import dev.gether.getclan.handler.SerdesBukkit;
 import dev.gether.getclan.handler.contextual.DeputyOwnerContextual;
 import dev.gether.getclan.handler.contextual.MemberContextual;
 import dev.gether.getclan.handler.contextual.OwnerContextual;
-import dev.gether.getclan.listener.AsyncPlayerChatListener;
-import dev.gether.getclan.listener.EntityDamageListener;
+import dev.gether.getclan.listener.*;
 import dev.gether.getclan.manager.ClanManager;
-import dev.gether.getclan.cmd.GetClanPLCmd;
-import dev.gether.getclan.config.Config;
-import dev.gether.getclan.database.MySQL;
-import dev.gether.getclan.listener.PlayerConnectionListener;
-import dev.gether.getclan.listener.PlayerDeathListener;
+import dev.gether.getclan.manager.CooldownManager;
+import dev.gether.getclan.manager.UserManager;
 import dev.gether.getclan.model.Clan;
 import dev.gether.getclan.model.User;
 import dev.gether.getclan.model.role.DeputyOwner;
 import dev.gether.getclan.model.role.Member;
 import dev.gether.getclan.model.role.Owner;
-import dev.gether.getclan.scheduler.TopRankScheduler;
-import dev.gether.getclan.service.QueueService;
 import dev.gether.getclan.placeholder.ClanPlaceholder;
+import dev.gether.getclan.scheduler.TopRankScheduler;
 import dev.gether.getclan.service.ClanService;
+import dev.gether.getclan.service.QueueService;
 import dev.gether.getclan.service.UserService;
-import dev.gether.getclan.manager.UserManager;
 import dev.gether.getclan.utils.MessageUtil;
 import dev.rollczi.litecommands.LiteCommands;
-import dev.rollczi.litecommands.LiteCommandsBuilder;
 import dev.rollczi.litecommands.bukkit.LiteBukkitFactory;
 import dev.rollczi.litecommands.bukkit.tools.BukkitOnlyPlayerContextual;
 import dev.rollczi.litecommands.bukkit.tools.BukkitPlayerArgument;
@@ -62,6 +61,7 @@ public final class GetClan extends JavaPlugin {
     // manager
     private UserManager userManager;
     private ClanManager clansManager;
+    private CooldownManager cooldownManager;
 
     // service
     private ClanService clanService;
@@ -119,8 +119,9 @@ public final class GetClan extends JavaPlugin {
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
-        clanPlaceholder = new ClanPlaceholder(this);
-
+        if(getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            clanPlaceholder = new ClanPlaceholder(this);
+        }
         // serivce
         queueService = new QueueService(this, mySQL);
         // IMPORTANT: first, we must implement clans, and then users
@@ -130,16 +131,18 @@ public final class GetClan extends JavaPlugin {
         // manager
         userManager = new UserManager(this, userService, lang);
         clansManager = new ClanManager(this, clanService);
+        cooldownManager = new CooldownManager();
 
         // load data form database
         loadDataMySQL();
 
         // listeners
         Stream.of(
-                new PlayerConnectionListener(this),
+                new PlayerConnectionListener(this, cooldownManager),
                 new PlayerDeathListener(this),
                 new EntityDamageListener(this),
-                new AsyncPlayerChatListener(this)
+                new AsyncPlayerChatListener(this),
+                new PlayerInteractionEntityListener(lang, userManager, cooldownManager)
         ).forEach(listener -> getServer().getPluginManager().registerEvents(listener, this));
 
 
