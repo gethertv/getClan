@@ -34,7 +34,6 @@ public class PlayerInteractionEntityListener implements Listener {
     public void onInteract(PlayerInteractEntityEvent event) {
         Player player = event.getPlayer();
 
-        boolean sneaking = player.isSneaking();
         if(event.getRightClicked() instanceof Player clickPlayer) {
             if(!player.isSneaking())
                 return;
