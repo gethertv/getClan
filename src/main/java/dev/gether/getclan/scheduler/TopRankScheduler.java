@@ -1,29 +1,25 @@
 package dev.gether.getclan.scheduler;
 
-import dev.gether.getclan.GetClan;
 import dev.gether.getclan.manager.ClanManager;
 import dev.gether.getclan.manager.UserManager;
 import dev.gether.getclan.model.Clan;
 import dev.gether.getclan.model.PlayerStat;
 import dev.gether.getclan.model.RankType;
 import dev.gether.getclan.model.User;
-import dev.rollczi.litecommands.argument.option.Opt;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 
 public class TopRankScheduler extends BukkitRunnable {
 
-    private UserManager userManager;
-    private ClanManager clanManager;
-    private Comparator<PlayerStat> comparator = (a, b) -> Integer.compare(b.getInt(), a.getInt());
+    private final UserManager userManager;
+    private final ClanManager clanManager;
+    private final Comparator<PlayerStat> comparator = (a, b) -> Integer.compare(b.getInt(), a.getInt());
 
     private HashMap<RankType, PriorityQueue<PlayerStat>> rankData = new HashMap<>();
-    public TopRankScheduler(UserManager userManager, ClanManager clanManager)
-    {
+    public TopRankScheduler(UserManager userManager, ClanManager clanManager) {
         this.userManager = userManager;
         this.clanManager = clanManager;
     }
@@ -54,8 +50,8 @@ public class TopRankScheduler extends BukkitRunnable {
     }
     private void implementsUser() {
         Queue<User> userQueue = new LinkedList<>(userManager.getUserData().values());
-        int queueSize = userQueue.size(); // Zapamiętaj początkowy rozmiar kolejki
-        for (int i = 0; i < queueSize; i++) { // Popraw warunek pętli
+        int queueSize = userQueue.size();
+        for (int i = 0; i < queueSize; i++) {
             User user = userQueue.poll();
             addUser(user);
         }
@@ -66,9 +62,7 @@ public class TopRankScheduler extends BukkitRunnable {
         int death = user.getDeath();
         int kills = user.getKills();
         int points = user.getPoints();
-
         String name = offlinePlayer.getName();
-
         addStats(name, kills, death, points);
     }
 
@@ -96,22 +90,20 @@ public class TopRankScheduler extends BukkitRunnable {
     }
 
 
-    private void addStats(String name, int kills, int death, int points) {
+    private void addStats(String name, int kills, int deaths, int points) {
         // kills
-        {
-            PriorityQueue<PlayerStat> playerStats = rankData.get(RankType.KILLS);
-            playerStats.add(new PlayerStat(name, kills));
-        }
+        addStatToRank(RankType.KILLS, name, kills);
+
         // deaths
-        {
-            PriorityQueue<PlayerStat> playerStats = rankData.get(RankType.DEATHS);
-            playerStats.add(new PlayerStat(name, death));
-        }
+        addStatToRank(RankType.DEATHS, name, deaths);
+
         // user points
-        {
-            PriorityQueue<PlayerStat> playerStats = rankData.get(RankType.USER_POINTS);
-            playerStats.add(new PlayerStat(name, points));
-        }
+        addStatToRank(RankType.USER_POINTS, name, points);
+    }
+
+    private void addStatToRank(RankType rankType, String name, int value) {
+        PriorityQueue<PlayerStat> playerStats = rankData.get(rankType);
+        playerStats.add(new PlayerStat(name, value));
     }
 
     public OptionalInt getClanRankIndexByTag(String tag) {

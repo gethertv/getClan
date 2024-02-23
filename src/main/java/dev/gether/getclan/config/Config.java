@@ -64,9 +64,15 @@ public class Config extends OkaeriConfig {
     public String colorOnlinePlayer = "&a";
     public String colorOfflinePlayer = "&7";
 
+
     @Comment("Gdy zastępca lidera nie jest ustawiony")
     @Comment("When deputy leader is not set")
     public String noneDeputy = "Brak";
+
+    @Comment("Placeholder %getclan_user_has_clan% kiedy nie posiadasz klanu")
+    @Comment("Placeholder %getclan_user_has_clan% when you don't have a clan")
+    public String hasNotClan = "false";
+    public String hasClan = "true";
 
     @Comment("Placeholder FORMAT kiedy nie posiadasz TAGU klanu")
     @Comment("Placeholder format when you don't have a clan TAG")

@@ -10,6 +10,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 
 public class AsyncPlayerChatListener implements Listener {
@@ -21,7 +22,7 @@ public class AsyncPlayerChatListener implements Listener {
         this.plugin = plugin;
         this.config = plugin.getConfigPlugin();
     }
-    @EventHandler()
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onSendMessage(AsyncChatEvent event)
     {
         Player player = event.getPlayer();

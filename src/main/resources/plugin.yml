@@ -2,4 +2,4 @@ name: getClan
 version: '${project.version}'
 main: dev.gether.getclan.GetClan
 api-version: 1.16
-softdepend: [Vault]
+softdepend: [Vault, CMI]

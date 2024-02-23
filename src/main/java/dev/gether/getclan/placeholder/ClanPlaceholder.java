@@ -7,6 +7,7 @@ import dev.gether.getclan.model.PlayerStat;
 import dev.gether.getclan.model.RankType;
 import dev.gether.getclan.model.User;
 import dev.gether.getclan.utils.ColorFixer;
+import dev.gether.getclan.utils.MessageUtil;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import me.clip.placeholderapi.expansion.Relational;
 import org.bukkit.Bukkit;
@@ -74,8 +75,12 @@ public class ClanPlaceholder extends PlaceholderExpansion implements Relational 
         }
         if (identifier.startsWith("user")) {
             User user = plugin.getUserManager().getUserData().get(player.getUniqueId());
-            if (user == null) return "";
+            if (user == null) {
+                return "";
+            }
             switch (identifier.toLowerCase()) {
+                case "user_has_clan":
+                    return user.hasClan() ? ColorFixer.addColors(config.hasClan) : ColorFixer.addColors(config.hasNotClan);
                 case "user_format_points":
                     return ColorFixer.addColors(
                             config.formatUserPoints.replace("{points}", String.valueOf(user.getPoints()))
@@ -91,7 +96,9 @@ public class ClanPlaceholder extends PlaceholderExpansion implements Relational 
         }
         if (identifier.startsWith("clan")) {
             User user = plugin.getUserManager().getUserData().get(player.getUniqueId());
-            if (user == null) return "";
+            if (user == null) {
+                return "";
+            }
             switch (identifier.toLowerCase()) {
                 case "clan_format_points":
                     String averagePoints = plugin.getClansManager().getAveragePoint(player);
