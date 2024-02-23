@@ -69,8 +69,8 @@ public class Config extends OkaeriConfig {
     @Comment("When deputy leader is not set")
     public String noneDeputy = "Brak";
 
-    @Comment("Placeholder %getclan_user_has_clan% kiedy nie posiadasz klanu")
-    @Comment("Placeholder %getclan_user_has_clan% when you don't have a clan")
+    @Comment("Placeholder %getclan_user_has_clan% kiedy nie/posiadasz klanu")
+    @Comment("Placeholder %getclan_user_has_clan% when you have/not a clan")
     public String hasNotClan = "false";
     public String hasClan = "true";
 

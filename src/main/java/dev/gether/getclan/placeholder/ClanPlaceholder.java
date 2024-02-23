@@ -7,16 +7,13 @@ import dev.gether.getclan.model.PlayerStat;
 import dev.gether.getclan.model.RankType;
 import dev.gether.getclan.model.User;
 import dev.gether.getclan.utils.ColorFixer;
-import dev.gether.getclan.utils.MessageUtil;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import me.clip.placeholderapi.expansion.Relational;
-import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
-import java.util.function.Function;
 
 
 public class ClanPlaceholder extends PlaceholderExpansion implements Relational {
