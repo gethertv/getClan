@@ -1,5 +1,9 @@
 package dev.gether.getclan.model;
 
+import dev.gether.getconfig.utils.MessageUtil;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -69,6 +73,14 @@ public class Clan {
             deputyOwnerUUID = null;
 
         members.remove(uuid);
+    }
+
+    public void broadcast(String message) {
+        members.forEach(uuid -> {
+            Player player = Bukkit.getPlayer(uuid);
+            if(player != null)
+                MessageUtil.sendMessage(player, message);
+        });
     }
     public void invite(UUID uuid) {
         invitedPlayers.add(uuid);

@@ -1,17 +1,13 @@
 package dev.gether.getclan.listener;
 
 import dev.gether.getclan.GetClan;
-import dev.gether.getclan.config.Config;
-import dev.gether.getclan.config.lang.LangMessage;
+import dev.gether.getclan.config.FileManager;
 import dev.gether.getclan.event.PointsChangeUserEvent;
+import dev.gether.getclan.manager.UserManager;
 import dev.gether.getclan.model.AntySystemRank;
 import dev.gether.getclan.model.User;
-import dev.gether.getclan.manager.UserManager;
-import dev.gether.getclan.utils.ColorFixer;
-import dev.gether.getclan.utils.MessageUtil;
 import dev.gether.getclan.utils.SystemPoint;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
+import dev.gether.getconfig.utils.MessageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -26,67 +22,63 @@ import java.util.UUID;
 public class PlayerDeathListener implements Listener {
 
     private final GetClan plugin;
-    private LangMessage lang;
-    private Config config;
+    private final FileManager fileManager;
     private HashMap<UUID, AntySystemRank> antySystem = new HashMap<>();
-    public PlayerDeathListener(GetClan plugin)
-    {
+
+    public PlayerDeathListener(GetClan plugin, FileManager fileManager) {
         this.plugin = plugin;
-        this.config = plugin.getConfigPlugin();
-        this.lang = plugin.lang;
+        this.fileManager = fileManager;
     }
+
     @EventHandler(priority = EventPriority.LOWEST)
-    public void onDeath(PlayerDeathEvent event)
-    {
+    public void onDeath(PlayerDeathEvent event) {
         Player player = event.getEntity();
         Player killer = player.getKiller();
 
         UserManager userManager = plugin.getUserManager();
         User userDeath = userManager.getUserData().get(player.getUniqueId());
 
-        if(userDeath == null)
+        if (userDeath == null)
             return;
 
         // increase death
         userDeath.increaseDeath();
 
-        if(killer == null) {
+        if (killer == null) {
             // message after the death
-            if(!config.deathMessage)
+            if (!fileManager.getConfig().isDeathMessage())
                 return;
 
             MessageUtil.broadcast(
-                    ColorFixer.addColors(
-                            lang.langBroadcastDeathNoVictimInfo
-                                    .replace("{victim}", player.getName())
-                    )
+                    fileManager.getLangConfig().getMessage("death-self-inflicted")
+                            .replace("{victim}", player.getName())
             );
             return;
         }
 
         User userKiller = userManager.getUserData().get(killer.getUniqueId());
-        if(userKiller == null)
+        if (userKiller == null)
             return;
 
 
         userKiller.increaseKill();
 
-        if (config.systemAntiabuse) {
+        if (fileManager.getConfig().isSystemAntiabuse()) {
             String playerIp = player.getAddress().getAddress().getHostAddress();
             AntySystemRank antySystemRank = antySystem.get(killer.getUniqueId());
 
             if (antySystemRank != null) {
                 if (!antySystemRank.isPlayerKillable(playerIp)) {
                     int second = SystemPoint.roundUpToMinutes(antySystemRank.getRemainingCooldown(playerIp));
-                    MessageUtil.sendMessage(killer, lang.cooldownKill.replace("{time}", String.valueOf(second)));
+                    MessageUtil.sendMessage(killer, fileManager.getLangConfig().getMessage("cooldown-kill").replace("{time}", String.valueOf(second)));
                     return;
                 }
-                antySystemRank.addCooldown(playerIp, config.cooldown);
+                antySystemRank.addCooldown(playerIp, fileManager.getConfig().getCooldown());
             } else {
                 antySystem.put(killer.getUniqueId(), new AntySystemRank(
                         killer.getAddress().getAddress().getHostAddress(),
                         playerIp,
-                        config.cooldown
+                        fileManager.getConfig().getCooldown()
                 ));
             }
         }
@@ -94,32 +86,29 @@ public class PlayerDeathListener implements Listener {
         int newPointDeath = SystemPoint.calculateEloRating(userDeath.getPoints(), userKiller.getPoints(), 0);
         int newPointKiller = SystemPoint.calculateEloRating(userKiller.getPoints(), userDeath.getPoints(), 1);
 
-        int deathPointTake = userDeath.getPoints()-newPointDeath;
-        int killerPointAdd = newPointKiller-userKiller.getPoints();
+        int deathPointTake = userDeath.getPoints() - newPointDeath;
+        int killerPointAdd = newPointKiller - userKiller.getPoints();
 
         PointsChangeUserEvent pointsChangeUserEvent = new PointsChangeUserEvent(killer, player, killerPointAdd, deathPointTake);
         Bukkit.getPluginManager().callEvent(pointsChangeUserEvent);
-        if(pointsChangeUserEvent.isCancelled())
+        if (pointsChangeUserEvent.isCancelled())
             return;
 
-        if(newPointDeath>=0)
-        {
+        if (newPointDeath >= 0) {
             userKiller.addPoint(pointsChangeUserEvent.getPointKiller());
             userDeath.takePoint(pointsChangeUserEvent.getPointVictim());
         }
 
         // message after the death
-        if(!config.deathMessage)
+        if (!fileManager.getConfig().isDeathMessage())
             return;
 
         MessageUtil.broadcast(
-                ColorFixer.addColors(
-                        lang.langBroadcastDeathInfo
+                fileManager.getLangConfig().getMessage("death-info")
                                 .replace("{victim}", player.getName())
                                 .replace("{killer}", killer.getName())
                                 .replace("{victim-points}", String.valueOf(pointsChangeUserEvent.getPointVictim()))
                                 .replace("{killer-points}", String.valueOf(pointsChangeUserEvent.getPointKiller()))
-                )
         );
     }
 

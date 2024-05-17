@@ -4,7 +4,6 @@ import dev.gether.getclan.database.MySQL;
 import dev.gether.getclan.model.Clan;
 import dev.gether.getclan.model.QueuedQuery;
 import dev.gether.getclan.model.User;
-import dev.gether.getclan.utils.ConsoleColor;
 import org.bukkit.entity.Player;
 
 import java.sql.ResultSet;

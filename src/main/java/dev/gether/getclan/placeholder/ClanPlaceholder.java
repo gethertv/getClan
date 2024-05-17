@@ -1,12 +1,12 @@
 package dev.gether.getclan.placeholder;
 
 import dev.gether.getclan.GetClan;
-import dev.gether.getclan.config.Config;
+import dev.gether.getclan.config.FileManager;
 import dev.gether.getclan.model.Clan;
 import dev.gether.getclan.model.PlayerStat;
 import dev.gether.getclan.model.RankType;
 import dev.gether.getclan.model.User;
-import dev.gether.getclan.utils.ColorFixer;
+import dev.gether.getconfig.utils.ColorFixer;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import me.clip.placeholderapi.expansion.Relational;
 import org.bukkit.OfflinePlayer;
@@ -39,11 +39,11 @@ public class ClanPlaceholder extends PlaceholderExpansion implements Relational 
     }
 
     private final GetClan plugin;
-    private Config config;
-    public ClanPlaceholder(GetClan plugin)
-    {
+    private final FileManager fileManager;
+
+    public ClanPlaceholder(GetClan plugin, FileManager fileManager) {
         this.plugin = plugin;
-        this.config = plugin.getConfigPlugin();
+        this.fileManager = fileManager;
         this.register();
     }
 
@@ -77,10 +77,11 @@ public class ClanPlaceholder extends PlaceholderExpansion implements Relational 
             }
             switch (identifier.toLowerCase()) {
                 case "user_has_clan":
-                    return user.hasClan() ? ColorFixer.addColors(config.hasClan) : ColorFixer.addColors(config.hasNotClan);
+                    String message = user.hasClan() ? fileManager.getConfig().getHasClan() : fileManager.getConfig().getHasNotClan();
+                    return ColorFixer.addColors(message);
                 case "user_format_points":
                     return ColorFixer.addColors(
-                            config.formatUserPoints.replace("{points}", String.valueOf(user.getPoints()))
+                            fileManager.getConfig().getFormatUserPoints().replace("{points}", String.valueOf(user.getPoints()))
                     );
                 case "user_points":
                     return String.valueOf(user.getPoints());
@@ -99,14 +100,10 @@ public class ClanPlaceholder extends PlaceholderExpansion implements Relational 
             switch (identifier.toLowerCase()) {
                 case "clan_format_points":
                     String averagePoints = plugin.getClansManager().getAveragePoint(player);
-                    return ColorFixer.addColors(
-                            config.formatClanPoints.replace("{points}", averagePoints)
-                    );
+                    return ColorFixer.addColors(fileManager.getConfig().getFormatClanPoints().replace("{points}", averagePoints));
                 case "clan_format_tag":
-                    if (user.getClan() == null) return config.noneTag;
-                    return ColorFixer.addColors(
-                            config.formatTag.replace("{tag}", user.getClan().getTag())
-                    );
+                    if (user.getClan() == null) return fileManager.getConfig().getNoneTag();
+                    return ColorFixer.addColors(fileManager.getConfig().getFormatTag().replace("{tag}", user.getClan().getTag()));
                 case "clan_points":
                     if (user.getClan() == null) return "";
                     return plugin.getClansManager().getAveragePoint(player);
@@ -141,15 +138,15 @@ public class ClanPlaceholder extends PlaceholderExpansion implements Relational 
             String tag = clan1.getTag();
 
             if (clan1.isMember(first.getUniqueId())) {
-                return ColorFixer.addColors(config.formatMember.replace("{tag}", String.valueOf(tag)));
+                return ColorFixer.addColors(fileManager.getConfig().getFormatMember().replace("{tag}", String.valueOf(tag)));
             }
 
             Clan clan2 = user1.getClan();
             if (clan2 != null && clan1.isAlliance(clan2.getTag())) {
-                return ColorFixer.addColors(config.formatAlliance.replace("{tag}", String.valueOf(tag)));
+                return ColorFixer.addColors(fileManager.getConfig().getFormatAlliance().replace("{tag}", String.valueOf(tag)));
             }
 
-            return ColorFixer.addColors(config.formatNormal.replace("{tag}", String.valueOf(tag)));
+            return ColorFixer.addColors(fileManager.getConfig().getFormatNormal().replace("{tag}", String.valueOf(tag)));
         }
         return null;
     }
@@ -158,14 +155,15 @@ public class ClanPlaceholder extends PlaceholderExpansion implements Relational 
         try {
             int a = Integer.parseInt(arg);
             return true;
-        } catch (NumberFormatException ignore) {}
+        } catch (NumberFormatException ignore) {
+        }
 
         return false;
     }
 
     private String handleTopType(RankType rankType, String identifier, int top) {
         Optional<PlayerStat> rank = plugin.getTopRankScheduler().getRank(rankType, top);
-        if(rank.isEmpty())
+        if (rank.isEmpty())
             return "";
 
         PlayerStat playerStat = rank.get();
@@ -177,5 +175,4 @@ public class ClanPlaceholder extends PlaceholderExpansion implements Relational 
         }
         return "";
     }
-
 }

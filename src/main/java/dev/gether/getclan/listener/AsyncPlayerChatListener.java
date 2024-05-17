@@ -1,10 +1,9 @@
 package dev.gether.getclan.listener;
 
 import dev.gether.getclan.GetClan;
-import dev.gether.getclan.config.Config;
+import dev.gether.getclan.config.domain.Config;
 import dev.gether.getclan.model.Clan;
 import dev.gether.getclan.model.User;
-import dev.gether.getclan.utils.MessageUtil;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;

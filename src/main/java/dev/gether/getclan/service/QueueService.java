@@ -7,7 +7,6 @@ import dev.gether.getclan.model.Clan;
 import dev.gether.getclan.model.QueuedQuery;
 import dev.gether.getclan.model.User;
 import dev.gether.getclan.manager.UserManager;
-import dev.gether.getclan.utils.ConsoleColor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 

@@ -1,20 +1,15 @@
 package dev.gether.getclan;
 
 import dev.gether.getclan.bstats.Metrics;
-import dev.gether.getclan.cmd.GetClanENCmd;
-import dev.gether.getclan.cmd.GetClanPLCmd;
-import dev.gether.getclan.cmd.GetGraczPLCmd;
-import dev.gether.getclan.cmd.GetUserENCmd;
+import dev.gether.getclan.cmd.ClanCommand;
+import dev.gether.getclan.cmd.PlayerCommand;
 import dev.gether.getclan.cmd.argument.ClanTagArgument;
 import dev.gether.getclan.cmd.argument.OwnerArgument;
 import dev.gether.getclan.cmd.argument.UserArgument;
-import dev.gether.getclan.config.Config;
-import dev.gether.getclan.config.lang.LangMessage;
-import dev.gether.getclan.config.lang.LangType;
+import dev.gether.getclan.config.FileManager;
 import dev.gether.getclan.database.MySQL;
-import dev.gether.getclan.handler.InvalidUsage;
+import dev.gether.getclan.handler.CustomInvalidUsage;
 import dev.gether.getclan.handler.PermissionMessage;
-import dev.gether.getclan.handler.SerdesBukkit;
 import dev.gether.getclan.handler.contextual.DeputyOwnerContextual;
 import dev.gether.getclan.handler.contextual.MemberContextual;
 import dev.gether.getclan.handler.contextual.OwnerContextual;
@@ -32,24 +27,19 @@ import dev.gether.getclan.scheduler.TopRankScheduler;
 import dev.gether.getclan.service.ClanService;
 import dev.gether.getclan.service.QueueService;
 import dev.gether.getclan.service.UserService;
-import dev.gether.getclan.utils.MessageUtil;
+import dev.gether.getconfig.utils.ConsoleColor;
+import dev.gether.getconfig.utils.MessageUtil;
 import dev.rollczi.litecommands.LiteCommands;
 import dev.rollczi.litecommands.bukkit.LiteBukkitFactory;
-import dev.rollczi.litecommands.bukkit.tools.BukkitOnlyPlayerContextual;
-import dev.rollczi.litecommands.bukkit.tools.BukkitPlayerArgument;
-import dev.rollczi.litecommands.platform.LiteSender;
-import eu.okaeri.configs.ConfigManager;
-import eu.okaeri.configs.yaml.bukkit.YamlBukkitConfigurer;
+import dev.rollczi.litecommands.bukkit.LiteBukkitMessages;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
 
-import java.io.File;
 import java.util.stream.Stream;
 
 public final class GetClan extends JavaPlugin {
@@ -69,8 +59,6 @@ public final class GetClan extends JavaPlugin {
     private QueueService queueService;
     private MySQL mySQL;
 
-    private Config config;
-    public LangMessage lang;
     private LiteCommands<CommandSender> liteCommands;
 
     private ClanPlaceholder clanPlaceholder;
@@ -78,33 +66,17 @@ public final class GetClan extends JavaPlugin {
     // scheduler TOP
     private TopRankScheduler topRankScheduler;
 
-    public void loadConfig() {
+    private FileManager fileManager;
 
-        config = ConfigManager.create(Config.class, (it) -> {
-            it.withConfigurer(new YamlBukkitConfigurer(), new SerdesBukkit());
-            it.withBindFile(new File(getDataFolder(), "config.yml"));
-            it.withRemoveOrphans(true);
-            it.saveDefaults();
-            it.load(true);
-        });
-
-        lang = ConfigManager.create(LangMessage.class, (it) -> {
-            it.withConfigurer(new YamlBukkitConfigurer(), new SerdesBukkit());
-            it.withBindFile(new File(getDataFolder(), "lang/"+config.langType.name()+".yml"));
-            it.withRemoveOrphans(true);
-            it.saveDefaults();
-            it.load(true);
-        });
+    @Override
+    public void onLoad() {
+        instance = this;
+        this.fileManager = new FileManager(this);
     }
 
     @Override
     public void onEnable() {
-
-        instance = this;
-
-        // implement configuration
-        loadConfig();
-
+        // setup the economy plugin VAULT
         if (!setupEconomy() ) {
             getServer().getLogger().severe(String.format("[%s] - Disabled due to no Vault dependency found!", getDescription().getName()));
             getServer().getPluginManager().disablePlugin(this);
@@ -112,16 +84,19 @@ public final class GetClan extends JavaPlugin {
         }
 
         // initialize mysql
-        mySQL = new MySQL(this);
+        mySQL = new MySQL(this, fileManager);
 
         if (!mySQL.isConnected()) {
-            getLogger().severe("Nie można połączyć się z bazą danych!");
+            getLogger().severe("Cannot connect to the database!");
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
+
         if(getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
-            clanPlaceholder = new ClanPlaceholder(this);
+            clanPlaceholder = new ClanPlaceholder(this, fileManager);
+            MessageUtil.logMessage(ConsoleColor.GREEN, "Successfully implement the placeholders");
         }
+
         // serivce
         queueService = new QueueService(this, mySQL);
         // IMPORTANT: first, we must implement clans, and then users
@@ -129,8 +104,8 @@ public final class GetClan extends JavaPlugin {
         userService = new UserService(mySQL, queueService);
 
         // manager
-        userManager = new UserManager(this, userService, lang);
-        clansManager = new ClanManager(this, clanService);
+        userManager = new UserManager(userService, this, fileManager);
+        clansManager = new ClanManager(this, clanService, fileManager);
         cooldownManager = new CooldownManager();
 
         // load data form database
@@ -139,10 +114,10 @@ public final class GetClan extends JavaPlugin {
         // listeners
         Stream.of(
                 new PlayerConnectionListener(this, cooldownManager),
-                new PlayerDeathListener(this),
+                new PlayerDeathListener(this, fileManager),
                 new EntityDamageListener(this),
                 new AsyncPlayerChatListener(this),
-                new PlayerInteractionEntityListener(lang, userManager, cooldownManager)
+                new PlayerInteractionEntityListener(fileManager, userManager, cooldownManager)
         ).forEach(listener -> getServer().getPluginManager().registerEvents(listener, this));
 
 
@@ -173,21 +148,20 @@ public final class GetClan extends JavaPlugin {
 
         if (mySQL != null) {
             queueService.execute();
-            mySQL.closeConnection();
+            mySQL.disconnect();
 
         }
 
-        this.liteCommands.getPlatform().unregisterAll();
+        this.liteCommands.unregister();
 
         HandlerList.unregisterAll(this);
         Bukkit.getScheduler().cancelTasks(this);
     }
 
-    public void reloadPlugin(LiteSender sender)
+    public void reloadPlugin(CommandSender sender)
     {
-        config.load();
-        lang.load();
-        MessageUtil.sendMessage(sender, "&aPomyslnie przeladowano plugin!");
+        fileManager.reload();
+        MessageUtil.sendMessage(sender, "&aSuccessfully reloaded plugin!");
     }
 
     private boolean setupEconomy() {
@@ -215,30 +189,28 @@ public final class GetClan extends JavaPlugin {
     public void registerCmd()
     {
 
-       this.liteCommands = LiteBukkitFactory.builder(this.getServer(), "getclan")
-                .commandInstance(
-                        (config.langType == LangType.PL ? new GetClanPLCmd(this) : new GetClanENCmd(this)),
-                        (config.langType == LangType.PL ? new GetGraczPLCmd(this) : new GetUserENCmd(this))
+        this.liteCommands = LiteBukkitFactory.builder("getclan")
+                .commands(
+                        new ClanCommand(this, fileManager),
+                        new PlayerCommand(this)
                 )
 
                 // contextual bind
-                .contextualBind(Owner.class, new OwnerContextual(this))
-                .contextualBind(DeputyOwner.class, new DeputyOwnerContextual(this))
-                .contextualBind(Member.class, new MemberContextual(this))
-                .contextualBind(Player.class, new BukkitOnlyPlayerContextual<>(lang.langPlayerNotOnline))
+                .argument(Owner.class, new OwnerContextual(this, fileManager))
+                .argument(DeputyOwner.class, new DeputyOwnerContextual(this, fileManager))
+                .argument(Member.class, new MemberContextual(this, fileManager))
 
+                .message(LiteBukkitMessages.PLAYER_NOT_FOUND, fileManager.getLangConfig().getMessage("player-not-found"))
 
-                // args
-                .argument(Player.class, new BukkitPlayerArgument<>(this.getServer(), lang.langPlayerNotOnline))
-                .argument(Clan.class, new ClanTagArgument(lang, clansManager))
-                .argument(Owner.class, new OwnerArgument(lang, userManager))
-                .argument(User.class, new UserArgument(lang, userManager))
+                .argument(Clan.class, new ClanTagArgument(clansManager, fileManager))
+                .argument(Owner.class, new OwnerArgument(userManager, fileManager))
+                .argument(User.class, new UserArgument(userManager, fileManager))
 
                 // handlers
-                .permissionHandler(new PermissionMessage(lang))
-                .invalidUsageHandler(new InvalidUsage(lang))
+                .missingPermission(new PermissionMessage(fileManager))
+                .invalidUsage(new CustomInvalidUsage(fileManager))
 
-                .register();
+                .build();
 
     }
 
@@ -246,10 +218,6 @@ public final class GetClan extends JavaPlugin {
         return topRankScheduler;
     }
 
-    public Config getConfigPlugin()
-    {
-        return config;
-    }
     public static GetClan getInstance() {
         return instance;
     }
@@ -267,8 +235,9 @@ public final class GetClan extends JavaPlugin {
         return economy;
     }
 
-    public LangMessage getLang() {
-        return lang;
+
+    public FileManager getFileManager() {
+        return fileManager;
     }
 
     public ClanService getClanService() {

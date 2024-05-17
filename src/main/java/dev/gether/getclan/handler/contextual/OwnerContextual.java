@@ -1,47 +1,49 @@
 package dev.gether.getclan.handler.contextual;
 
+
 import dev.gether.getclan.GetClan;
-import dev.gether.getclan.config.Config;
-import dev.gether.getclan.config.lang.LangMessage;
+import dev.gether.getclan.config.FileManager;
 import dev.gether.getclan.manager.UserManager;
 import dev.gether.getclan.model.User;
 import dev.gether.getclan.model.role.Owner;
-import dev.rollczi.litecommands.command.Invocation;
-import dev.rollczi.litecommands.contextual.Contextual;
+import dev.rollczi.litecommands.argument.Argument;
+import dev.rollczi.litecommands.argument.parser.ParseResult;
+import dev.rollczi.litecommands.argument.resolver.ArgumentResolver;
+import dev.rollczi.litecommands.invocation.Invocation;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import panda.std.Option;
-import panda.std.Result;
 
-public class OwnerContextual implements Contextual<CommandSender, Owner> {
+public class OwnerContextual extends ArgumentResolver<CommandSender, Owner> {
 
 
-    private GetClan plugin;
-    private LangMessage lang;
-    public OwnerContextual(GetClan plugin) {
+    private final GetClan plugin;
+    private final FileManager fileManager;
+
+    public OwnerContextual(GetClan plugin, FileManager fileManager) {
         this.plugin = plugin;
-        this.lang = plugin.lang;
+        this.fileManager = fileManager;
     }
+
     @Override
-    public Result<Owner, Object> extract(CommandSender sender, Invocation<CommandSender> invocation) {
-        Option<Player> playerOption = Option.of(sender).is(Player.class);
-        if(playerOption.isEmpty()) {
-            return Result.error(lang.langPlayerNotOnline);
+    protected ParseResult<Owner> parse(Invocation<CommandSender> invocation, Argument<Owner> argument, String s) {
+        Option<Player> playerOption = Option.of(invocation).is(Player.class);
+        if (playerOption.isEmpty()) {
+            return ParseResult.failure(fileManager.getLangConfig().getMessage("player-not-found"));
         }
 
         Player player = playerOption.get();
         UserManager userManager = plugin.getUserManager();
         User user = userManager.getUserData().get(player.getUniqueId());
 
-        if(!user.hasClan()) {
-            return Result.error(lang.langNoClan);
+        if (!user.hasClan()) {
+            return ParseResult.failure(fileManager.getLangConfig().getMessage("player-has-no-clan"));
         }
-        if(!user.getClan().isOwner(player.getUniqueId())) {
-            return Result.error(lang.langNotOwnerClan);
+        if (!user.getClan().isOwner(player.getUniqueId())) {
+            return ParseResult.failure(fileManager.getLangConfig().getMessage("not-clan-owner"));
         }
 
-        return Result.ok(new Owner(player, user.getClan()));
+        return ParseResult.success(new Owner(player, user.getClan()));
+
     }
-
-
 }

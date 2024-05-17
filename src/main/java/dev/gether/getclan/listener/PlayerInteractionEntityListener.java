@@ -1,31 +1,26 @@
 package dev.gether.getclan.listener;
 
-import dev.gether.getclan.config.Config;
-import dev.gether.getclan.config.lang.LangMessage;
-import dev.gether.getclan.manager.ClanManager;
+import dev.gether.getclan.config.FileManager;
 import dev.gether.getclan.manager.CooldownManager;
 import dev.gether.getclan.manager.UserManager;
 import dev.gether.getclan.model.User;
-import dev.gether.getclan.utils.MessageUtil;
-import org.bukkit.Bukkit;
+import dev.gether.getconfig.utils.MessageUtil;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.EquipmentSlot;
 
-import java.util.HashMap;
 import java.util.Optional;
-import java.util.UUID;
 
 public class PlayerInteractionEntityListener implements Listener {
 
-    private final LangMessage lang;
+    private final FileManager fileManager;
     private final UserManager userManager;
     private final CooldownManager cooldownManager;
 
-    public PlayerInteractionEntityListener(LangMessage lang, UserManager userManager, CooldownManager cooldownManager) {
-        this.lang = lang;
+    public PlayerInteractionEntityListener(FileManager fileManager, UserManager userManager, CooldownManager cooldownManager) {
+        this.fileManager = fileManager;
         this.userManager = userManager;
         this.cooldownManager = cooldownManager;
     }
@@ -41,7 +36,7 @@ public class PlayerInteractionEntityListener implements Listener {
             if(event.getHand() == EquipmentSlot.OFF_HAND) return;
             // check user has cooldown
             if(cooldownManager.hasCooldown(player)) {
-                MessageUtil.sendMessage(player, lang.langSlowDown);
+                MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("slow-down"));
                 return;
             }
             // add cooldown

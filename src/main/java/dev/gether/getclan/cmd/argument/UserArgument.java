@@ -1,48 +1,46 @@
 package dev.gether.getclan.cmd.argument;
 
-import dev.gether.getclan.config.Config;
-import dev.gether.getclan.config.lang.LangMessage;
+import dev.gether.getclan.config.FileManager;
 import dev.gether.getclan.manager.UserManager;
 import dev.gether.getclan.model.User;
-import dev.rollczi.litecommands.argument.ArgumentName;
-import dev.rollczi.litecommands.argument.simple.OneArgument;
-import dev.rollczi.litecommands.command.LiteInvocation;
-import dev.rollczi.litecommands.suggestion.Suggestion;
+import dev.rollczi.litecommands.argument.Argument;
+import dev.rollczi.litecommands.argument.parser.ParseResult;
+import dev.rollczi.litecommands.argument.resolver.ArgumentResolver;
+import dev.rollczi.litecommands.invocation.Invocation;
+import dev.rollczi.litecommands.suggestion.SuggestionContext;
+import dev.rollczi.litecommands.suggestion.SuggestionResult;
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
-import panda.std.Result;
 
-import java.util.List;
 import java.util.stream.Collectors;
 
-@ArgumentName("user")
-public class UserArgument implements OneArgument<User> {
+public class UserArgument extends ArgumentResolver<CommandSender, User> {
 
     private final UserManager userManager;
-    private LangMessage lang;
+    private final FileManager fileManager;
 
-    public UserArgument(LangMessage lang, UserManager userManager) {
-        this.lang = lang;
+    public UserArgument(UserManager userManager, FileManager fileManager) {
         this.userManager = userManager;
+        this.fileManager = fileManager;
     }
 
     @Override
-    public Result<User, Object> parse(LiteInvocation invocation, String argument) {
+    protected ParseResult<User> parse(Invocation<CommandSender> invocation, Argument<User> context, String argument) {
         Player player = Bukkit.getPlayer(argument);
-        if(player==null)
-        {
-            return Result.error(lang.langPlayerNotOnline);
+        if (player == null) {
+            return ParseResult.failure(fileManager.getLangConfig().getMessage("player-not-found"));
         }
 
         User user = userManager.getUserData().get(player.getUniqueId());
-        return Result.ok(user);
-    }
-    @Override
-    public List<Suggestion> suggest(LiteInvocation invocation) {
-        return Bukkit.getOnlinePlayers().stream()
-                .map(user -> user.getName())
-                .map(Suggestion::of)
-                .collect(Collectors.toList());
+        return ParseResult.success(user);
     }
 
+    @Override
+    public SuggestionResult suggest(Invocation<CommandSender> invocation, Argument<User> argument, SuggestionContext context) {
+        return SuggestionResult.of(Bukkit.getOnlinePlayers().stream()
+                .map(HumanEntity::getName)
+                .collect(Collectors.toList()));
+    }
 }

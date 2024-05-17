@@ -1,8 +1,7 @@
 package dev.gether.getclan.manager;
 
 import dev.gether.getclan.GetClan;
-import dev.gether.getclan.config.Config;
-import dev.gether.getclan.config.lang.LangMessage;
+import dev.gether.getclan.config.FileManager;
 import dev.gether.getclan.event.*;
 import dev.gether.getclan.model.Clan;
 import dev.gether.getclan.model.CostType;
@@ -11,52 +10,48 @@ import dev.gether.getclan.model.role.DeputyOwner;
 import dev.gether.getclan.model.role.Member;
 import dev.gether.getclan.model.role.Owner;
 import dev.gether.getclan.service.ClanService;
-import dev.gether.getclan.utils.ColorFixer;
-import dev.gether.getclan.utils.ConsoleColor;
-import dev.gether.getclan.utils.ItemUtil;
-import dev.gether.getclan.utils.MessageUtil;
-import dev.rollczi.litecommands.platform.LiteSender;
+import dev.gether.getconfig.utils.ColorFixer;
+import dev.gether.getconfig.utils.ConsoleColor;
+import dev.gether.getconfig.utils.ItemUtil;
+import dev.gether.getconfig.utils.MessageUtil;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ClanManager {
     private final GetClan plugin;
-    private Config config;
-    private LangMessage lang;
     private ClanService clanService;
     private HashMap<String, Clan> clansData = new HashMap<>();
+    private final FileManager fileManager;
 
-    public ClanManager(GetClan plugin, ClanService clanService)
-    {
+    public ClanManager(GetClan plugin, ClanService clanService, FileManager fileManager) {
         this.plugin = plugin;
-        this.config = plugin.getConfigPlugin();
-        this.lang = plugin.getLang();
         this.clanService = clanService;
+        this.fileManager = fileManager;
     }
 
     public void setOwner(Owner owner, Player target) {
         Clan clan = owner.getClan();
         Player player = owner.getPlayer();
-        if(isSame(player, target.getUniqueId()))
-        {
-            MessageUtil.sendMessage(player, lang.langCannotChangeToYourSelf);
+        if (isSame(player, target.getUniqueId())) {
+            MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("cannot-change-to-yourself"));
             return;
         }
-        if(!isYourClan(clan, target.getUniqueId()))
-        {
-            MessageUtil.sendMessage(player, lang.langPlayerNotYourClan);
+        if (!isYourClan(clan, target.getUniqueId())) {
+            MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("player-not-in-your-clan"));
             return;
         }
 
         // check event and set new owner
         boolean success = handleSetOwner(clan, target.getUniqueId());
-        if(success) {
+        if (success) {
             MessageUtil.sendMessage(owner.getPlayer(),
-                    lang.langChangeOwner
+                    fileManager.getLangConfig().getMessage("change-leader")
                             .replace("{new-owner}", target.getName())
 
             );
@@ -77,57 +72,49 @@ public class ClanManager {
     public void changePvpStatus(DeputyOwner deputyOwner) {
         Clan clan = deputyOwner.getClan();
         clan.togglePvp();
-        if(clan.isPvpEnable()) {
-            MessageUtil.sendMessage(clan, lang.langClanPvpEnable);
-        } else {
-            MessageUtil.sendMessage(clan, lang.langClanPvpDisable);
-        }
+        clan.broadcast(fileManager.getLangConfig().getMessage(clan.isPvpEnable() ? "pvp-enabled" : "pvp-disabled"));
     }
 
-    public void forceSetOwner(LiteSender sender, String username) {
+    public void forceSetOwner(CommandSender sender, String username) {
         Optional<UUID> uuidOptional = getPlayerUUIDByNickname(username);
-        if(uuidOptional.isEmpty()) {
-            MessageUtil.sendMessage(sender, lang.langPlayerNotOnline);
+        if (uuidOptional.isEmpty()) {
+            MessageUtil.sendMessage(sender, fileManager.getLangConfig().getMessage("player-not-found"));
             return;
         }
         UUID newOwnerUUID = uuidOptional.get();
         User user = plugin.getUserManager().getUserData().get(newOwnerUUID);
-        if(!user.hasClan()) {
-            MessageUtil.sendMessage(sender, lang.langAdminUserNoClan);
+        if (!user.hasClan()) {
+            MessageUtil.sendMessage(sender, fileManager.getLangConfig().getMessage("admin-player-no-clan"));
             return;
         }
         Clan clan = user.getClan();
         // check event and set new owner
         boolean success = handleSetOwner(clan, newOwnerUUID);
-        if(success)
-            MessageUtil.sendMessage(sender, lang.langadminSuccessfullySetOwner);
+        if (success)
+            MessageUtil.sendMessage(sender, fileManager.getLangConfig().getMessage("admin-set-leader"));
     }
 
-    public void inviteUser(DeputyOwner deputyOwner, Player target)
-    {
+    public void inviteUser(DeputyOwner deputyOwner, Player target) {
         Clan clan = deputyOwner.getClan();
         Player player = deputyOwner.getPlayer();
 
         // limit clan
-        if(isLimitMember(clan))
-        {
-            MessageUtil.sendMessage(player, lang.langLimitMembers);
+        if (isLimitMember(clan)) {
+            MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("clan-member-limit-reached"));
             return;
         }
 
-        if(hasClan(target))
-        {
-            MessageUtil.sendMessage(player, lang.langInvitedPlayerHasClan);
+        if (hasClan(target)) {
+            MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("player-already-in-clan"));
             return;
         }
-        if(clan.hasInvite(target.getUniqueId()))
-        {
+        if (clan.hasInvite(target.getUniqueId())) {
             // cancel invite to clan
             CancelInviteClanEvent event = new CancelInviteClanEvent(clan, target);
             Bukkit.getPluginManager().callEvent(event);
             if (!event.isCancelled()) {
                 clan.cancelInvite(target.getUniqueId());
-                MessageUtil.sendMessage(player, lang.langCancelInvite
+                MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("invite-cancelled")
                         .replace("{player}", target.getName())
                 );
             }
@@ -140,12 +127,12 @@ public class ClanManager {
         if (!event.isCancelled()) {
             clan.invite(target.getUniqueId());
             MessageUtil.sendMessage(player,
-                    lang.langInvitedPlayer
+                    fileManager.getLangConfig().getMessage("player-invited")
                             .replace("{player}", target.getName())
 
             );
             MessageUtil.sendMessage(target,
-                    lang.langGetInvitation
+                    fileManager.getLangConfig().getMessage("no-invitation")
                             .replace("{tag}", clan.getTag())
 
             );
@@ -162,31 +149,28 @@ public class ClanManager {
     }
 
     private boolean isLimitMember(Clan clan) {
-        return clan.getMembers().size()>=getMaxMember(clan);
+        return clan.getMembers().size() >= getMaxMember(clan);
     }
 
 
     // checking permission and count members
-    public int getMaxMember(Clan clan)
-    {
+    public int getMaxMember(Clan clan) {
         int ownerMax = getUserMaxMember(clan.getOwnerUUID());
         int deputyOwnerMax = getUserMaxMember(clan.getDeputyOwnerUUID());
         return Math.max(ownerMax, deputyOwnerMax);
     }
 
     private int getUserMaxMember(UUID uuid) {
-        if(uuid==null)
+        if (uuid == null)
             return 0;
 
         Player player = Bukkit.getPlayer(uuid);
-        if(player!=null)
-        {
-            Map<String, Integer> permissionLimitMember = config.permissionLimitMember;
-            for(Map.Entry<String, Integer> permissionData : permissionLimitMember.entrySet())
-            {
+        if (player != null) {
+            Map<String, Integer> permissionLimitMember = fileManager.getConfig().getPermissionLimitMember();
+            for (Map.Entry<String, Integer> permissionData : permissionLimitMember.entrySet()) {
                 String permission = permissionData.getKey();
                 int max = permissionData.getValue();
-                if(player.hasPermission(permission))
+                if (player.hasPermission(permission))
                     return max;
             }
         }
@@ -195,67 +179,63 @@ public class ClanManager {
 
 
     public void infoClan(Player player, Clan clan) {
-
         OptionalInt clanRankIndexByTag = plugin.getTopRankScheduler().getClanRankIndexByTag(clan.getTag());
         int index = 9999;
-        if(clanRankIndexByTag.isPresent())
-            index = clanRankIndexByTag.getAsInt()+1;
+        if (clanRankIndexByTag.isPresent())
+            index = clanRankIndexByTag.getAsInt() + 1;
 
-        String infoMessage = MessageUtil.joinListToString(lang.langInfoClan);
+        String infoMessage = String.join("\n", fileManager.getLangConfig().getMessage("info-clan"));
         infoMessage = infoMessage.replace("{tag}", clan.getTag())
-                        .replace("{owner}", getPlayerName(clan.getOwnerUUID()))
-                        .replace("{deputy-owner}", getPlayerName(clan.getDeputyOwnerUUID()))
-                        .replace("{points}", getAveragePoint(clan))
-                        .replace("{members-online}", String.valueOf(countOnlineMember(clan)))
-                        .replace("{members-size}", String.valueOf(clan.getMembers().size()))
-                        .replace("{rank}", String.valueOf(index))
-                        .replace("{members}", getClanMembers(clan));
+                .replace("{owner}", getPlayerName(clan.getOwnerUUID()))
+                .replace("{deputy-owner}", getPlayerName(clan.getDeputyOwnerUUID()))
+                .replace("{points}", getAveragePoint(clan))
+                .replace("{members-online}", String.valueOf(countOnlineMember(clan)))
+                .replace("{members-size}", String.valueOf(clan.getMembers().size()))
+                .replace("{rank}", String.valueOf(index))
+                .replace("{members}", getClanMembers(clan));
 
         MessageUtil.sendMessage(player, infoMessage);
     }
 
+
     private String getClanMembers(Clan clan) {
         List<UUID> members = clan.getMembers();
-        List<String> membersText = new ArrayList<>();
-
-        for(UUID uuid : members)
-        {
-            OfflinePlayer player = Bukkit.getOfflinePlayer(uuid);
-            if(player.isOnline())
-                membersText.add(config.colorOnlinePlayer+player.getName());
-            else
-                membersText.add(config.colorOfflinePlayer+player.getName());
-
-        }
-        return String.join(", ", membersText);
+        return members.stream()
+                .map(uuid -> {
+                    OfflinePlayer player = Bukkit.getOfflinePlayer(uuid);
+                    String color = player.isOnline() ?
+                            fileManager.getConfig().getColorOnlinePlayer() :
+                            fileManager.getConfig().getColorOfflinePlayer();
+                    return color + player.getName();
+                })
+                .collect(Collectors.joining(", "));
     }
+
 
     public int countOnlineMember(Clan clan) {
         int online = 0;
         for (UUID uuid : clan.getMembers()) {
             Player player = Bukkit.getPlayer(uuid);
-            if(player!=null)
+            if (player != null)
                 online++;
         }
         return online;
     }
 
-    public String getAveragePoint(Player player)
-    {
+    public String getAveragePoint(Player player) {
         UserManager userManager = plugin.getUserManager();
         User user = userManager.getUserData().get(player.getUniqueId());
-        if(user==null || !user.hasClan())
-            return config.nonePointsClan;
+        if (user == null || !user.hasClan())
+            return fileManager.getConfig().getNonePointsClan();
 
         Clan clan = user.getClan();
-        if(!doesClanFulfillThreshold(clan)) {
-            return ColorFixer.addColors(config.placeholderNeedMembers);
+        if (!doesClanFulfillThreshold(clan)) {
+            return ColorFixer.addColors(fileManager.getConfig().getPlaceholderNeedMembers());
         }
         return getAveragePoint(clan);
     }
 
-    public String getAveragePoint(Clan clan)
-    {
+    public String getAveragePoint(Clan clan) {
         List<UUID> members = clan.getMembers();
         int sum = 0;
         int count = 0;
@@ -264,9 +244,9 @@ public class ClanManager {
 
         for (UUID uuid : members) {
             User tempUser = userManager.getUserData().get(uuid);
-            if(tempUser==null) {
+            if (tempUser == null) {
                 OfflinePlayer player = Bukkit.getOfflinePlayer(uuid);
-                plugin.getLogger().info(ConsoleColor.RED+"Bląd - Gracz o nazwie " + player.getName() + "  nalezy do klanu "+clan.getTag() + " ale nie znajduje go jako obiekt User");
+                plugin.getLogger().info(ConsoleColor.RED + "Bląd - Gracz o nazwie " + player.getName() + "  nalezy do klanu " + clan.getTag() + " ale nie znajduje go jako obiekt User");
                 continue;
             }
             sum += tempUser.getPoints();
@@ -276,42 +256,38 @@ public class ClanManager {
         return String.valueOf((int) average);
     }
 
-    private String getPlayerName(UUID uuid)
-    {
-        if(uuid==null)
-            return config.noneDeputy;
+    private String getPlayerName(UUID uuid) {
+        if (uuid == null)
+            return fileManager.getConfig().getNoneDeputy();
 
         return Bukkit.getOfflinePlayer(uuid).getName();
     }
-    public void joinClan(Player player, Clan clan)
-    {
+
+    public void joinClan(Player player, Clan clan) {
         User user = plugin.getUserManager().getUserData().get(player.getUniqueId());
-        if(user.hasClan())
-        {
+        if (user.hasClan()) {
             // already has clan
-            MessageUtil.sendMessage(player, lang.langHasClan);
+            MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("player-already-has-clan"));
             return;
         }
-        if(!clan.hasInvite(player.getUniqueId()))
-        {
+        if (!clan.hasInvite(player.getUniqueId())) {
             // not received invite
-            MessageUtil.sendMessage(player, lang.langNoInvited);
+            MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("no-invitation"));
             return;
         }
-        if(isLimitMember(clan))
-        {
-            MessageUtil.sendMessage(player, lang.langLimitMembers);
+        if (isLimitMember(clan)) {
+            MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("clan-member-limit-reached"));
             return;
         }
 
         // join to clan - call event
-        joinClanCheckEvent(player, user,clan);
+        joinClanCheckEvent(player, user, clan);
     }
 
-    public void forceJoin(LiteSender liteSender, User user, Clan clan) {
+    public void forceJoin(CommandSender sender, User user, Clan clan) {
         Player player = Bukkit.getPlayer(user.getUuid());
-        if(user.hasClan()) {
-            MessageUtil.sendMessage(liteSender, lang.langAdminHasClan);
+        if (user.hasClan()) {
+            MessageUtil.sendMessage(sender, fileManager.getLangConfig().getMessage("admin-player-has-clan"));
             return;
         }
         // join to clan - call event
@@ -324,12 +300,12 @@ public class ClanManager {
         if (!event.isCancelled()) {
             user.setClan(clan);
             clan.joinUser(player.getUniqueId());
-            MessageUtil.sendMessage(player, lang.langSuccessfullyJoined);
+            MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("player-joined-clan"));
             return;
         }
     }
-    public void deleteClan(Owner owner)
-    {
+
+    public void deleteClan(Owner owner) {
         Clan clan = owner.getClan();
         Player player = owner.getPlayer();
 
@@ -337,16 +313,17 @@ public class ClanManager {
         handleDeleteClan(clan, player);
     }
 
-    public void deleteClanByAdmin(LiteSender sender, Clan clan) {
+    public void deleteClanByAdmin(CommandSender sender, Clan clan) {
         // call event and delete clan
         boolean isDeleted = handleDeleteClan(clan, null);
-        if(isDeleted) {
-            MessageUtil.sendMessage(sender, lang.langAdminDeleteClan);
-        }
+        if (isDeleted)
+            MessageUtil.sendMessage(sender, fileManager.getLangConfig().getMessage("admin-clan-deleted"));
+
     }
+
     private boolean handleDeleteClan(Clan clan, Player player) {
         // null mean the player deleted clan is admin
-        if(player==null) {
+        if (player == null) {
             return deleteClan(clan, null);
         }
 
@@ -355,20 +332,17 @@ public class ClanManager {
         if (!event.isCancelled()) {
             return deleteClan(clan, player);
         }
-
         return false;
     }
 
     private boolean deleteClan(Clan clan, Player player) {
         String tag = clan.getTag();
         ClanManager clansManager = plugin.getClansManager();
-        for(UUID uuid : clan.getMembers())
-        {
+        for (UUID uuid : clan.getMembers()) {
             User member = plugin.getUserManager().getUserData().get(uuid);
             member.setClan(null);
         }
-        for(String allianceTag : clan.getAlliances())
-        {
+        for (String allianceTag : clan.getAlliances()) {
             Clan allianceClan = clansManager.getClansData().get(allianceTag.toUpperCase());
             allianceClan.getAlliances().remove(tag.toUpperCase());
             clanService.deleteAlliance(tag);
@@ -378,64 +352,61 @@ public class ClanManager {
         // remove clan to system ranking
         plugin.getTopRankScheduler().removeClan(clan);
         // if player is null that mean clan is removed by admin
-        if(player!=null) {
-            MessageUtil.broadcast(lang.langBroadcastDeleteClan
+        if (player != null) {
+            MessageUtil.broadcast(fileManager.getLangConfig().getMessage("clan-deleted")
                     .replace("{tag}", tag)
                     .replace("{player}", player.getName())
             );
         }
         return true;
     }
-    public void createClan(Player player, String tag)
-    {
-        if(hasClan(player))
-        {
-            MessageUtil.sendMessage(player, lang.langHasClan);
+
+    public void createClan(Player player, String tag) {
+        if (hasClan(player)) {
+            MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("player-already-has-clan"));
             return;
         }
 
         // check MIN AND MAX LENGTHS of tag
-        if(tag.length()< config.clansTagLengthMin || tag.length()> config.clansTagLengthMax)
-        {
-            MessageUtil.sendMessage(player, lang.langMinMaxTag
-                    .replace("{min-length}", String.valueOf(config.clansTagLengthMin))
-                    .replace("{max-length}", String.valueOf(config.clansTagLengthMax))
+        int min = fileManager.getConfig().getClansTagLengthMin();
+        int max = fileManager.getConfig().getClansTagLengthMax();
+        if (tag.length() < min || tag.length() > max) {
+            MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("clan-name-length-info")
+                    .replace("{min-length}", String.valueOf(min))
+                    .replace("{max-length}", String.valueOf(max))
             );
             return;
         }
         // check the name is not busy
-        if(tagIsBusy(tag.toUpperCase()))
-        {
-            MessageUtil.sendMessage(player, lang.langTagIsBusy);
+        if (tagIsBusy(tag.toUpperCase())) {
+            MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("clan-name-exists"));
             return;
         }
         User user = plugin.getUserManager().getUserData().get(player.getUniqueId());
-        if(user==null)
+        if (user == null)
             return;
 
 
-        if(config.enablePayment)
-        {
+        if (fileManager.getConfig().isEnablePayment()) {
             boolean status = checkPayments(player);
-            if(!status)
+            if (!status)
                 return;
+
         }
-
-
 
         // create clan
         CreateClanEvent event = new CreateClanEvent(player, tag);
         Bukkit.getPluginManager().callEvent(event);
         if (!event.isCancelled()) {
-            Clan clan = new Clan(tag, player.getUniqueId(), config.pvpClan);
+            Clan clan = new Clan(tag, player.getUniqueId(), fileManager.getConfig().isPvpClan());
             clansData.put(tag.toUpperCase(), clan);
             user.setClan(clan);
             clanService.createClan(clan, player);
             // add clan to system ranking
             plugin.getTopRankScheduler().addClan(clan);
-            MessageUtil.broadcast(lang.langBroadcastCreateClan
-                            .replace("{tag}", tag)
-                            .replace("{player}", player.getName())
+            MessageUtil.broadcast(fileManager.getLangConfig().getMessage("clan-created")
+                    .replace("{tag}", tag)
+                    .replace("{player}", player.getName())
             );
 
         }
@@ -443,34 +414,33 @@ public class ClanManager {
     }
 
     private boolean checkPayments(Player player) {
-        if(config.costType == CostType.VAULT) {
+        if (fileManager.getConfig().getCostType() == CostType.VAULT) {
             Economy economy = plugin.getEconomy();
-            if(!economy.has(player, config.costCreate))
-            {
-                MessageUtil.sendMessage(player, lang.noMoney.replace("{cost}", String.valueOf(config.costCreate)));
+            if (!economy.has(player, fileManager.getConfig().getCostCreate())) {
+                MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("clan-cost-vault")
+                        .replace("{cost}", String.valueOf(fileManager.getConfig().getCostCreate())));
                 return false;
             }
-            economy.withdrawPlayer(player, config.costCreate);
+            economy.withdrawPlayer(player, fileManager.getConfig().getCostCreate());
             return true;
         } else {
-            int amount = ItemUtil.calcItemAmount(player, config.itemCost);
-            int needAmount = (int) config.costCreate;
-            if(amount<needAmount)
-            {
-                MessageUtil.sendMessage(player, lang.noItem
+            int amount = ItemUtil.calcItem(player, fileManager.getConfig().getItemCost());
+            int needAmount = (int) fileManager.getConfig().getCostCreate();
+            if (amount < needAmount) {
+                MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("clan-cost-item")
                         .replace("{amount}", String.valueOf(needAmount))
                 );
                 return false;
             }
-            ItemUtil.removeItems(player, config.itemCost, needAmount);
+            ItemUtil.removeItem(player, fileManager.getConfig().getItemCost(), needAmount);
             return true;
         }
     }
 
     // kick user from clan by admin
-    public void forceKickUser(LiteSender sender, User user) {
-        if(!user.hasClan()) {
-            MessageUtil.sendMessage(sender, lang.langAdminUserNoClan);
+    public void forceKickUser(CommandSender sender, User user) {
+        if (!user.hasClan()) {
+            MessageUtil.sendMessage(sender, fileManager.getLangConfig().getMessage("admin-player-no-clan"));
             return;
         }
 
@@ -486,24 +456,21 @@ public class ClanManager {
         Player player = deputyOwner.getPlayer();
 
         Optional<UUID> optionalUUID = getPlayerUUIDByNickname(nickname);
-        if(optionalUUID.isEmpty()) {
-            MessageUtil.sendMessage(player, lang.langPlayerNotOnline);
+        if (optionalUUID.isEmpty()) {
+            MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("player-not-found"));
             return;
         }
         UUID targetUUID = optionalUUID.get();
-        if(!isYourClan(clan, targetUUID))
-        {
-            MessageUtil.sendMessage(player, lang.langPlayerNotYourClan);
+        if (!isYourClan(clan, targetUUID)) {
+            MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("player-not-in-your-clan"));
             return;
         }
-        if(isSame(player, targetUUID))
-        {
-            MessageUtil.sendMessage(player, lang.langCannotKickYourSelf);
+        if (isSame(player, targetUUID)) {
+            MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("cannot-kick-yourself"));
             return;
         }
-        if(isOwner(clan, targetUUID))
-        {
-            MessageUtil.sendMessage(player, lang.langCannotKickOwner);
+        if (isOwner(clan, targetUUID)) {
+            MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("cannot-kick-owner"));
             return;
         }
         // kick player from clan
@@ -518,18 +485,18 @@ public class ClanManager {
             clan.removeMember(kickedUser.getUuid());
             kickedUser.setClan(null);
             // if its null then mean the kicked user is from the console
-            if(player!=null)
-                MessageUtil.sendMessage(player, lang.langSuccessfullyKicked);
-            return;
+            if (player != null)
+                MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("player-kicked-from-clan"));
         }
     }
+
     private Optional<UUID> getPlayerUUIDByNickname(String nickname) {
         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayerIfCached(nickname);
-        if(offlinePlayer!=null) {
+        if (offlinePlayer != null) {
             return Optional.of(offlinePlayer.getUniqueId());
         }
         Player player = Bukkit.getPlayer(nickname);
-        if(player==null) {
+        if (player == null) {
             return Optional.empty();
         }
         return Optional.of(player.getUniqueId());
@@ -542,9 +509,8 @@ public class ClanManager {
     public void leaveClan(Member member) {
         Clan clan = member.getClan();
         Player player = member.getPlayer();
-        if(isOwner(clan, player.getUniqueId()))
-        {
-            MessageUtil.sendMessage(player, lang.langOwnerCannotLeave);
+        if (isOwner(clan, player.getUniqueId())) {
+            MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("owner-cannot-leave"));
             return;
         }
         User user = plugin.getUserManager().getUserData().get(player.getUniqueId());
@@ -554,9 +520,10 @@ public class ClanManager {
         if (!event.isCancelled()) {
             clan.removeMember(player.getUniqueId());
             user.setClan(null);
-            MessageUtil.sendMessage(player, lang.langSuccessfullyLeaved);
+            MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("player-left-clan"));
         }
     }
+
     private boolean isYourClan(Clan clan, UUID uuid) {
         return clan.getMembers().contains(uuid);
     }
@@ -564,24 +531,20 @@ public class ClanManager {
     private boolean isOwner(Clan clan, UUID playerUUID) {
         return clan.getOwnerUUID().equals(playerUUID);
     }
-    private boolean tagIsBusy(String tag) {
-        if(clansData.get(tag)!=null)
-            return true;
 
-        return false;
+    private boolean tagIsBusy(String tag) {
+        return clansData.get(tag) != null;
     }
 
     public void alliance(DeputyOwner deputyOwner, Clan allianceClan) {
         Clan clan = deputyOwner.getClan();
         Player player = deputyOwner.getPlayer();
 
-        if(isYourClan(allianceClan, player.getUniqueId()))
-        {
-            MessageUtil.sendMessage(player, lang.langCannotAllianceYourClan);
+        if (isYourClan(allianceClan, player.getUniqueId())) {
+            MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("cannot-alliance-own-clan"));
             return;
         }
-        if(clan.isAlliance(allianceClan.getTag()))
-        {
+        if (clan.isAlliance(allianceClan.getTag())) {
             DisbandAllianceEvent event = new DisbandAllianceEvent(clan, allianceClan);
             Bukkit.getPluginManager().callEvent(event);
             if (!event.isCancelled()) {
@@ -592,7 +555,7 @@ public class ClanManager {
                 clanService.deleteAlliance(clan.getTag());
 
                 // message
-                MessageUtil.broadcast(lang.langBroadcastDisbandAlliance
+                MessageUtil.broadcast(fileManager.getLangConfig().getMessage("alliance-disbanded")
                         .replace("{first-clan}", clan.getTag())
                         .replace("{second-clan}", allianceClan.getTag())
                 );
@@ -600,15 +563,13 @@ public class ClanManager {
             return;
         }
         // check limit
-        if(isLimitAlliance(clan))
-        {
-            MessageUtil.sendMessage(player, lang.langLimitAlliance);
+        if (isLimitAlliance(clan)) {
+            MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("alliance-limit-reached"));
             return;
         }
 
         // check if you have already been invited to the alliance.
-        if(allianceClan.isSuggestAlliance(clan.getTag()))
-        {
+        if (allianceClan.isSuggestAlliance(clan.getTag())) {
             CreateAllianceEvent event = new CreateAllianceEvent(clan, allianceClan);
             Bukkit.getPluginManager().callEvent(event);
             if (!event.isCancelled()) {
@@ -620,37 +581,33 @@ public class ClanManager {
                 clanService.createAlliance(clan.getTag(), allianceClan.getTag());
 
                 // message
-                MessageUtil.broadcast(lang.langBroadcastCreateAlliance
+                MessageUtil.broadcast(fileManager.getLangConfig().getMessage("alliance-formed")
                         .replace("{first-clan}", clan.getTag())
                         .replace("{second-clan}", allianceClan.getTag())
                 );
             }
             return;
         }
-        if(!clan.isSuggestAlliance(allianceClan.getTag()))
-        {
+        if (!clan.isSuggestAlliance(allianceClan.getTag())) {
             clan.inviteAlliance(allianceClan.getTag());
-            MessageUtil.sendMessage(player, lang.langSuggestAlliance);
-            MessageUtil.sendMessage(allianceClan, lang.langGetSuggestAlliance
+            MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("suggest-alliance"));
+            allianceClan.broadcast(fileManager.getLangConfig().getMessage("get-suggest-alliance")
                     .replace("{tag}", clan.getTag())
             );
-            return;
         } else {
             clan.removeInviteAlliance(allianceClan.getTag());
-            MessageUtil.sendMessage(player, lang.langCancelSuggestAlliance
+            MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("cancel-suggest-alliance")
                     .replace("{tag}", allianceClan.getTag())
             );
         }
-
 
     }
 
     public void removeDeputy(Owner owner) {
         Clan clan = owner.getClan();
         Player player = owner.getPlayer();
-        if(deputyIsEmpty(clan))
-        {
-            MessageUtil.sendMessage(player, lang.langNoDeputy);
+        if (deputyIsEmpty(clan)) {
+            MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("clan-has-no-deputy"));
             return;
         }
         DeleteDeputyEvent event = new DeleteDeputyEvent(clan, clan.getDeputyOwnerUUID());
@@ -658,26 +615,24 @@ public class ClanManager {
         if (!event.isCancelled()) {
             clan.setDeputyOwnerUUID(null);
             //clanService.updateClan(clan);
-            MessageUtil.sendMessage(player, lang.langDeputyDelete);
+            MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("deputy-removed"));
         }
     }
 
     private boolean deputyIsEmpty(Clan clan) {
-         return clan.getDeputyOwnerUUID()==null;
+        return clan.getDeputyOwnerUUID() == null;
     }
 
     public void setDeputy(Owner owner, Player target) {
         Player player = owner.getPlayer();
         User user = plugin.getUserManager().getUserData().get(player.getUniqueId());
         Clan clan = user.getClan();
-        if(!isYourClan(clan, target.getUniqueId()))
-        {
-            MessageUtil.sendMessage(player, lang.langPlayerNotYourClan);
+        if (!isYourClan(clan, target.getUniqueId())) {
+            MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("player-not-in-your-clan"));
             return;
         }
-        if(clan.isDeputy(target.getUniqueId()))
-        {
-            MessageUtil.sendMessage(player, lang.langIsDeputy);
+        if (clan.isDeputy(target.getUniqueId())) {
+            MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("player-is-deputy"));
             return;
         }
         DeputyChangeClanEvent event = new DeputyChangeClanEvent(user.getClan(), player, target);
@@ -685,21 +640,21 @@ public class ClanManager {
         if (!event.isCancelled()) {
             clan.setDeputyOwnerUUID(target.getUniqueId());
             //clanService.updateClan(clan);
-            MessageUtil.sendMessage(player, lang.langSetDeputyOwner);
+            MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("deputy-set"));
         }
     }
 
     public boolean doesClanFulfillThreshold(Clan clan) {
-        return clan.getMembers().size() >= config.membersRequiredForRanking;
+        return clan.getMembers().size() >= fileManager.getConfig().getMembersRequiredForRanking();
     }
+
     private boolean isLimitAlliance(Clan clan) {
-        return clan.getAlliances().size() >= config.limitAlliance;
+        return clan.getAlliances().size() >= fileManager.getConfig().getLimitAlliance();
     }
 
     public Clan getClan(String tag) {
         return clansData.get(tag.toUpperCase());
     }
-
 
 
     public Clan deleteClan(String tag) {
@@ -709,7 +664,6 @@ public class ClanManager {
     public HashMap<String, Clan> getClansData() {
         return clansData;
     }
-
 
 
 }

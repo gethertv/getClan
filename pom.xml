@@ -83,32 +83,37 @@
     </repositories>
 
     <dependencies>
+<!--        hikariCP-->
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>5.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.gether</groupId>
+            <artifactId>getConfig</artifactId>
+            <version>2.0</version>
+        </dependency>
+
         <dependency>
             <groupId>org.bstats</groupId>
             <artifactId>bstats-bukkit</artifactId>
             <version>3.0.2</version>
             <scope>compile</scope>
         </dependency>
+
+
         <dependency>
-            <groupId>dev.rollczi.litecommands</groupId>
-            <artifactId>bukkit</artifactId>
-            <version>2.8.9</version>
+            <groupId>dev.rollczi</groupId>
+            <artifactId>litecommands-bukkit</artifactId>
+            <version>3.4.1</version>
         </dependency>
+
         <dependency>
             <groupId>me.clip</groupId>
             <artifactId>placeholderapi</artifactId>
             <version>2.11.3</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>eu.okaeri</groupId>
-            <artifactId>okaeri-configs-yaml-bukkit</artifactId>
-            <version>5.0.0-beta.5</version>
-        </dependency>
-        <dependency>
-            <groupId>eu.okaeri</groupId>
-            <artifactId>okaeri-configs-serdes-bukkit</artifactId>
-            <version>5.0.0-beta.5</version>
         </dependency>
         <dependency>
             <groupId>com.destroystokyo.paper</groupId>
@@ -121,6 +126,12 @@
             <artifactId>VaultAPI</artifactId>
             <version>1.7.1</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>RELEASE</version>
+            <scope>compile</scope>
         </dependency>
 
     </dependencies>
