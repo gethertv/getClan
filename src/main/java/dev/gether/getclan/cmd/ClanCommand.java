@@ -2,9 +2,10 @@ package dev.gether.getclan.cmd;
 
 import dev.gether.getclan.GetClan;
 import dev.gether.getclan.config.FileManager;
-import dev.gether.getclan.manager.UserManager;
-import dev.gether.getclan.model.Clan;
-import dev.gether.getclan.model.User;
+import dev.gether.getclan.core.clan.ClanManager;
+import dev.gether.getclan.core.user.UserManager;
+import dev.gether.getclan.core.clan.Clan;
+import dev.gether.getclan.core.user.User;
 import dev.gether.getclan.model.role.DeputyOwner;
 import dev.gether.getclan.model.role.Member;
 import dev.gether.getclan.model.role.Owner;
@@ -28,12 +29,13 @@ public class ClanCommand {
 
     private final GetClan plugin;
     private final FileManager fileManager;
-
+    private final ClanManager clanManager;
     private final Pattern pattern = Pattern.compile("^[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ0-9]+$");
 
-    public ClanCommand(GetClan plugin, FileManager fileManager) {
+    public ClanCommand(GetClan plugin, FileManager fileManager, ClanManager clanManager) {
         this.plugin = plugin;
         this.fileManager = fileManager;
+        this.clanManager = clanManager;
     }
 
     private boolean isPlayer(CommandSender sender) {
@@ -45,13 +47,13 @@ public class ClanCommand {
     }
 
     @Execute(name = "delete")
-    public void deleteClan(Owner owner) {
-        plugin.getClansManager().deleteClan(owner);
+    public void deleteClan(@Context Owner owner) {
+        plugin.getClanManager().deleteClan(owner);
     }
 
     @Execute(name = "leave")
-    public void leaveClan(Member member) {
-        plugin.getClansManager().leaveClan(member);
+    public void leaveClan(@Context Member member) {
+        plugin.getClanManager().leaveClan(member);
     }
 
     @Execute(name = "create")
@@ -64,46 +66,46 @@ public class ClanCommand {
             MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("invalid-tag-characters"));
             return;
         }
-        plugin.getClansManager().createClan(player, tag);
+        plugin.getClanManager().createClan(player, tag);
     }
     @Execute(name = "info")
     public void infoClan(@Context CommandSender sender, @Arg("tag") Clan clan) {
         if(!isPlayer(sender)) return;
         Player player = (Player) sender;
 
-        plugin.getClansManager().infoClan(player, clan);
+        plugin.getClanManager().infoClan(player, clan);
     }
     @Execute(name = "setowner")
-    public void setOwner(@Context CommandSender sender, Owner owner, @Arg("player") Player target) {
-        plugin.getClansManager().setOwner(owner, target);
+    public void setOwner(@Context CommandSender sender, @Arg Owner owner, @Arg("player") Player target) {
+        plugin.getClanManager().setOwner(owner, target);
     }
 
     @Execute(name = "deputy")
-    public void setDeputy(@Context CommandSender sender, Owner owner, @Arg("player") Player target) {
-        plugin.getClansManager().setDeputy(owner, target);
+    public void setDeputy(@Context CommandSender sender, @Arg Owner owner, @Arg("player") Player target) {
+        plugin.getClanManager().setDeputy(owner, target);
     }
     @Execute(name = "removedeputy")
-    public void removeDeputy(@Context CommandSender sender, Owner owner) {
-        plugin.getClansManager().removeDeputy(owner);
+    public void removeDeputy(@Context CommandSender sender, @Arg Owner owner) {
+        plugin.getClanManager().removeDeputy(owner);
     }
 
     @Execute(name = "invite")
-    public void inviteUser(@Context CommandSender sender, DeputyOwner deputyOwner, @Arg("player") Player target) {
-        plugin.getClansManager().inviteUser(deputyOwner, target);
+    public void inviteUser(@Context CommandSender sender, @Arg DeputyOwner deputyOwner, @Arg("player") Player target) {
+        plugin.getClanManager().inviteUser(deputyOwner, target);
     }
     @Execute(name = "kick")
-    public void kickUser(@Context CommandSender sender, DeputyOwner deputyOwner, @Arg("nickname") String username) {
-        plugin.getClansManager().kickUser(deputyOwner, username);
+    public void kickUser(@Context CommandSender sender, @Arg DeputyOwner deputyOwner, @Arg("nickname") String username) {
+        plugin.getClanManager().kickUser(deputyOwner, username);
     }
 
     @Execute(name = "alliance")
-    public void alliace(@Context CommandSender sender, DeputyOwner deputyOwner, @Arg("tag") Clan clan) {
-        plugin.getClansManager().alliance(deputyOwner, clan);
+    public void alliace(@Context CommandSender sender, @Arg DeputyOwner deputyOwner, @Arg("tag") Clan clan) {
+        plugin.getClanManager().alliance(deputyOwner, clan);
     }
 
     @Execute(name = "join")
     public void joinClan(@Context Player player, @Arg("tag") Clan clan) {
-        plugin.getClansManager().joinClan(player, clan);
+        plugin.getClanManager().joinClan(player, clan);
     }
 
     @Execute(name = "reload")
@@ -113,73 +115,74 @@ public class ClanCommand {
         plugin.reloadPlugin(sender);
     }
 
-    @Execute(name = "admin-join")
+    @Execute(name = "admin join")
     @Permission("getclan.admin")
     public void adminForceJoinUser(@Context CommandSender sender, @Arg("player") User user, @Arg("tag") Clan clan) {
-        plugin.getClansManager().forceJoin(sender, user, clan);
+        plugin.getClanManager().forceJoin(sender, user, clan);
     }
 
-    @Execute(name = "admin-kick")
+    @Execute(name = "admin kick")
     @Permission("getclan.admin")
     public void adminForceKickUser(@Context CommandSender sender, @Arg("gracz") User user) {
-        plugin.getClansManager().forceKickUser(sender, user);
+        plugin.getClanManager().forceKickUser(sender, user);
     }
 
     @Execute(name = "pvp")
-    public void changePvpStatusClan(@Context CommandSender sender, DeputyOwner deputyOwner) {
-        plugin.getClansManager().changePvpStatus(deputyOwner);
+    public void changePvpStatusClan(@Context CommandSender sender, @Arg DeputyOwner deputyOwner) {
+        plugin.getClanManager().changePvpStatus(deputyOwner);
     }
 
 
-    @Execute(name = "admin-setleader")
+    @Execute(name = "admin setleader")
     @Permission("getclan.admin")
     public void adminSetOwner(@Context CommandSender sender, @Arg("nickname") String username) {
-        plugin.getClansManager().forceSetOwner(sender, username);
+        plugin.getClanManager().forceSetOwner(sender, username);
     }
 
 
-    @Execute(name = "admin-reset-all")
+    @Execute(name = "admin reset all")
     @Permission("getclan.admin")
     public void adminReset(@Context CommandSender sender, @Arg("player") User user) {
         plugin.getUserManager().resetUser(user);
         MessageUtil.sendMessage(sender, "&aSuccessfully reset!");
     }
 
-    @Execute(name = "admin-reset-points")
+    @Execute(name = "admin reset points")
     @Permission("getclan.admin")
     public void adminResetPoints(@Context CommandSender sender, @Arg("player") User user) {
         plugin.getUserManager().resetPoints(user);
         MessageUtil.sendMessage(sender, "&aPoints reset successfully!");
     }
 
-    @Execute(name = "admin-reset-kill")
+    @Execute(name = "admin reset kill")
     @Permission("getclan.admin")
     public void adminResetKill(@Context CommandSender sender, @Arg("player") User user) {
         plugin.getUserManager().resetKill(user);
         MessageUtil.sendMessage(sender, "&aKills reset successfully!");
     }
-    @Execute(name = "admin-reset-death")
+    @Execute(name = "admin reset death")
     @Permission("getclan.admin")
     public void adminResetDeath(@Context CommandSender sender, @Arg("player") User user) {
         plugin.getUserManager().resetDeath(user);
         MessageUtil.sendMessage(sender, "&aDeaths reset successfully!");
     }
 
-    @Execute(name = "admin-debug")
+    @Execute(name = "admin debug")
     @Permission("getclan.admin")
     public void adminDebug(@Context CommandSender sender, @Arg("player") Player target) {
         User user = plugin.getUserManager().getUserData().get(target.getUniqueId());
-        if (user == null || user.getClan() == null) {
+        if (user == null || !user.hasClan()) {
             MessageUtil.sendMessage(sender, "&cPlayer doesn't have a clan!");
             return;
         }
         UserManager userManager = plugin.getUserManager();
-        user.getClan().getMembers().forEach(((uuid) -> {
-            User userTemp = userManager.getUserData().get(uuid);
-            MessageUtil.sendMessage(sender, "&7" + uuid + " -> " + userTemp.getPoints());
+        Clan clan = clanManager.getClan(user.getTag());
+        clan.getMembers().forEach((memberUUID -> {
+            User userTemp = userManager.getUserData().get(memberUUID);
+            MessageUtil.sendMessage(sender, "&7" + memberUUID + " -> " + userTemp.getPoints());
         }));
     }
-    @Execute(name = "admin-setitem")
+    @Execute(name = "admin setitem")
     @Permission("getclan.admin")
     public void setItemCost(@Context Player player) {
         ItemStack itemInMainHand = player.getInventory().getItemInMainHand();
@@ -194,14 +197,14 @@ public class ClanCommand {
         fileManager.getConfig().save();
         MessageUtil.sendMessage(player, "&aItem set successfully!");
     }
-    @Execute(name = "admin-delete-clan")
+    @Execute(name = "admin delete clan")
     @Permission("getclan.admin")
     public void adminRemove(@Context CommandSender sender, @Arg("player") Owner owner) {
-        plugin.getClansManager().deleteClan(owner);
+        plugin.getClanManager().deleteClan(owner);
         MessageUtil.sendMessage(sender, "&aClan successfully removed!");
     }
 
-    @Execute(name = "admin-setpoints")
+    @Execute(name = "admin setpoints")
     @Permission("getclan.admin")
     public void adminSetPoint(@Context CommandSender sender, @Arg("player") User user, @Arg("points") int points) {
         user.setPoints(points);

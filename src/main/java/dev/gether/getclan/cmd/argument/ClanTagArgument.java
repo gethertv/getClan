@@ -1,14 +1,12 @@
 package dev.gether.getclan.cmd.argument;
 
 import dev.gether.getclan.config.FileManager;
-import dev.gether.getclan.manager.ClanManager;
-import dev.gether.getclan.model.Clan;
-import dev.gether.getclan.model.role.Owner;
+import dev.gether.getclan.core.clan.ClanManager;
+import dev.gether.getclan.core.clan.Clan;
 import dev.rollczi.litecommands.argument.Argument;
 import dev.rollczi.litecommands.argument.parser.ParseResult;
 import dev.rollczi.litecommands.argument.resolver.ArgumentResolver;
 import dev.rollczi.litecommands.invocation.Invocation;
-import dev.rollczi.litecommands.suggestion.Suggestion;
 import dev.rollczi.litecommands.suggestion.SuggestionContext;
 import dev.rollczi.litecommands.suggestion.SuggestionResult;
 import org.bukkit.command.CommandSender;

@@ -1,4 +1,4 @@
-package dev.gether.getclan.manager;
+package dev.gether.getclan.core;
 
 import org.bukkit.entity.Player;
 

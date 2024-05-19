@@ -1,4 +1,4 @@
-package dev.gether.getclan.model;
+package dev.gether.getclan.database;
 
 import java.util.List;
 
@@ -18,4 +18,5 @@ public class QueuedQuery {
     public List<Object> getParameters() {
         return parameters;
     }
+
 }

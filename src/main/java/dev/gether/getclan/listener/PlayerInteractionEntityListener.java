@@ -1,9 +1,9 @@
 package dev.gether.getclan.listener;
 
 import dev.gether.getclan.config.FileManager;
-import dev.gether.getclan.manager.CooldownManager;
-import dev.gether.getclan.manager.UserManager;
-import dev.gether.getclan.model.User;
+import dev.gether.getclan.core.CooldownManager;
+import dev.gether.getclan.core.user.UserManager;
+import dev.gether.getclan.core.user.User;
 import dev.gether.getconfig.utils.MessageUtil;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;

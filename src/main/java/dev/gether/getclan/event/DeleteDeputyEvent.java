@@ -1,7 +1,6 @@
 package dev.gether.getclan.event;
 
-import dev.gether.getclan.model.Clan;
-import org.bukkit.entity.Player;
+import dev.gether.getclan.core.clan.Clan;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;

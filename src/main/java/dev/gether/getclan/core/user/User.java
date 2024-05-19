@@ -1,4 +1,4 @@
-package dev.gether.getclan.model;
+package dev.gether.getclan.core.user;
 
 import org.bukkit.entity.Player;
 
@@ -7,24 +7,24 @@ import java.util.UUID;
 public class User {
 
     private UUID uuid;
+    private String name;
     private int kills;
     private int death;
     private int points;
+    private String tag;
 
-    private Clan clan;
-
-    public User(UUID uuid, int kills, int death, int points, Clan clan) {
+    public User(UUID uuid, String name, int kills, int death, int points, String tag) {
         this.kills = kills;
         this.death = death;
         this.points = points;
         this.uuid = uuid;
-        if(clan!=null) {
-            this.clan = clan;
-        }
+        this.name = name;
+        this.tag = tag;
     }
-    public User(Player player, int points)
-    {
+
+    public User(Player player, int points) {
         this.uuid = player.getUniqueId();
+        this.name = player.getName();
         this.kills = 0;
         this.death = 0;
         this.points = points;
@@ -33,43 +33,43 @@ public class User {
     public void increaseDeath() {
         this.death++;
     }
-    public void increaseKill( ) {
+
+    public void increaseKill() {
         this.kills++;
     }
 
-    public void takePoint(int points)
-    {
-        this.points-=points;
+    public void takePoint(int points) {
+        this.points -= points;
     }
-    public void addPoint(int points)
-    {
-        this.points+=points;
+
+    public void addPoint(int points) {
+        this.points += points;
     }
 
     public void setPoints(int points) {
         this.points = points;
     }
 
-    public void setClan(Clan clan) {
-        this.clan = clan;
+    public void setTag(String tag) {
+        this.tag = tag;
     }
 
-    public Clan getClan() {
-        return clan;
+    public String getTag() {
+        return tag;
     }
 
-    public boolean hasClan()
-    {
-        return clan != null;
+    public boolean hasClan() {
+        return tag != null;
     }
-    public void resetKill()
-    {
+
+    public void resetKill() {
         kills = 0;
     }
-    public void resetDeath()
-    {
+
+    public void resetDeath() {
         death = 0;
     }
+
     public int getKills() {
         return kills;
     }
@@ -84,5 +84,9 @@ public class User {
 
     public UUID getUuid() {
         return uuid;
+    }
+
+    public String getName() {
+        return name;
     }
 }

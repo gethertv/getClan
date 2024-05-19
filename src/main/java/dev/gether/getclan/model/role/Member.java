@@ -1,6 +1,6 @@
 package dev.gether.getclan.model.role;
 
-import dev.gether.getclan.model.Clan;
+import dev.gether.getclan.core.clan.Clan;
 import org.bukkit.entity.Player;
 
 public class Member extends ClanMember{

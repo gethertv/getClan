@@ -1,18 +1,15 @@
-package dev.gether.getclan.manager;
+package dev.gether.getclan.core.user;
 
 import dev.gether.getclan.GetClan;
+import dev.gether.getclan.core.clan.Clan;
 import dev.gether.getclan.config.FileManager;
-import dev.gether.getclan.model.User;
-import dev.gether.getclan.service.UserService;
 import dev.gether.getconfig.utils.ColorFixer;
 import dev.gether.getconfig.utils.MessageUtil;
-import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;
 import java.util.Optional;
-import java.util.OptionalInt;
+import java.util.Set;
 import java.util.UUID;
 
 public class UserManager {
@@ -33,7 +30,6 @@ public class UserManager {
         if (user == null) {
             user = new User(player, fileManager.getConfig().getDefaultPoints());
             // add user to system of ranking
-            plugin.getTopRankScheduler().addUser(user);
             userData.put(player.getUniqueId(), user);
             userService.createUser(player);
         }
@@ -48,20 +44,16 @@ public class UserManager {
 
     public void infoPlayer(Player player, User user) {
         // get player object
-        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(user.getUuid());
-        OptionalInt clanRankIndexByTag = plugin.getTopRankScheduler().getUserRankByName(offlinePlayer.getName());
-        int index = 9999;
-        if (clanRankIndexByTag.isPresent())
-            index = clanRankIndexByTag.getAsInt() + 1;
+        int index = plugin.getRankingManager().findTopPlayerByName(user);
 
-        String clan = (user.getClan() == null) ? fileManager.getConfig().getNoneTag() : fileManager.getConfig().getFormatTag().replace("{tag}", user.getClan().getTag());
+        String clanTag = user.hasClan() ? fileManager.getConfig().getFormatTag().replace("{tag}", user.getTag()) : fileManager.getConfig().getNoneTag();
 
         String infoMessage = fileManager.getLangConfig().getMessage("info-user");
-        infoMessage = infoMessage.replace("{player}", offlinePlayer.getName())
+        infoMessage = infoMessage.replace("{player}", user.getName())
                 .replace("{kills}", String.valueOf(user.getKills()))
                 .replace("{deaths}", String.valueOf(user.getDeath()))
                 .replace("{points}", String.valueOf(user.getPoints()))
-                .replace("{tag}", ColorFixer.addColors(clan))
+                .replace("{tag}", ColorFixer.addColors(clanTag))
                 .replace("{rank}", String.valueOf(index));
 
 
@@ -93,4 +85,19 @@ public class UserManager {
         return userData;
     }
 
+    public void loadUsers() {
+        Set<User> users = userService.loadUsers();
+        users.forEach(user -> {
+            if(user.hasClan()) {
+                Clan clan = plugin.getClanManager().getClan(user.getTag());
+                if(!clan.isOwner(user.getUuid()))
+                    clan.addMember(user.getUuid());
+            }
+            userData.put(user.getUuid(), user);
+        });
+    }
+
+    public void update(User user) {
+        userService.updateUser(user);
+    }
 }

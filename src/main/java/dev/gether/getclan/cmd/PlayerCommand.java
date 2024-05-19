@@ -1,7 +1,7 @@
 package dev.gether.getclan.cmd;
 
 import dev.gether.getclan.GetClan;
-import dev.gether.getclan.model.User;
+import dev.gether.getclan.core.user.User;
 import dev.rollczi.litecommands.annotations.argument.Arg;
 import dev.rollczi.litecommands.annotations.command.Command;
 import dev.rollczi.litecommands.annotations.context.Context;

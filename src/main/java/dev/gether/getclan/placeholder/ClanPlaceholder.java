@@ -2,10 +2,11 @@ package dev.gether.getclan.placeholder;
 
 import dev.gether.getclan.GetClan;
 import dev.gether.getclan.config.FileManager;
-import dev.gether.getclan.model.Clan;
+import dev.gether.getclan.core.clan.ClanManager;
+import dev.gether.getclan.core.clan.Clan;
 import dev.gether.getclan.model.PlayerStat;
 import dev.gether.getclan.model.RankType;
-import dev.gether.getclan.model.User;
+import dev.gether.getclan.core.user.User;
 import dev.gether.getconfig.utils.ColorFixer;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import me.clip.placeholderapi.expansion.Relational;
@@ -40,11 +41,12 @@ public class ClanPlaceholder extends PlaceholderExpansion implements Relational 
 
     private final GetClan plugin;
     private final FileManager fileManager;
+    private final ClanManager clanManager;
 
-    public ClanPlaceholder(GetClan plugin, FileManager fileManager) {
+    public ClanPlaceholder(GetClan plugin, FileManager fileManager, ClanManager clanManager) {
         this.plugin = plugin;
         this.fileManager = fileManager;
-        this.register();
+        this.clanManager = clanManager;
     }
 
     @Override
@@ -97,25 +99,28 @@ public class ClanPlaceholder extends PlaceholderExpansion implements Relational 
             if (user == null) {
                 return "";
             }
+            Clan clan = clanManager.getClan(user.getTag());
             switch (identifier.toLowerCase()) {
                 case "clan_format_points":
-                    String averagePoints = plugin.getClansManager().getAveragePoint(player);
+                    String averagePoints = plugin.getClanManager().getAveragePoint(player);
                     return ColorFixer.addColors(fileManager.getConfig().getFormatClanPoints().replace("{points}", averagePoints));
                 case "clan_format_tag":
-                    if (user.getClan() == null) return fileManager.getConfig().getNoneTag();
-                    return ColorFixer.addColors(fileManager.getConfig().getFormatTag().replace("{tag}", user.getClan().getTag()));
+                    if (!user.hasClan()) return fileManager.getConfig().getNoneTag();
+                    return ColorFixer.addColors(fileManager.getConfig().getFormatTag().replace("{tag}", user.getTag()));
                 case "clan_points":
-                    if (user.getClan() == null) return "";
-                    return plugin.getClansManager().getAveragePoint(player);
+                    if (!user.hasClan()) return "";
+                    return plugin.getClanManager().getAveragePoint(player);
                 case "clan_tag":
-                    if (user.getClan() == null) return "";
-                    return user.getClan().getTag();
+                    if (!user.hasClan()) return "";
+                    return user.getTag();
                 case "clan_members_size":
-                    if (user.getClan() == null) return "0";
-                    return String.valueOf(user.getClan().getMembers().size());
+                    if (!user.hasClan()) return "0";
+
+                    return String.valueOf(clan.getMembers().size());
                 case "clan_members_online":
-                    if (user.getClan() == null) return "0";
-                    return String.valueOf(plugin.getClansManager().countOnlineMember(user.getClan()));
+                    if (!user.hasClan()) return "0";
+
+                    return String.valueOf(plugin.getClanManager().countOnlineMember(clan));
             }
             return null;
         }
@@ -132,7 +137,7 @@ public class ClanPlaceholder extends PlaceholderExpansion implements Relational 
 
             if (user1 == null || user2 == null) return null;
 
-            Clan clan1 = user2.getClan();
+            Clan clan1 = clanManager.getClan(user2.getTag());
             if (clan1 == null) return "";
 
             String tag = clan1.getTag();
@@ -141,7 +146,7 @@ public class ClanPlaceholder extends PlaceholderExpansion implements Relational 
                 return ColorFixer.addColors(fileManager.getConfig().getFormatMember().replace("{tag}", String.valueOf(tag)));
             }
 
-            Clan clan2 = user1.getClan();
+            Clan clan2 = clanManager.getClan(user1.getTag());
             if (clan2 != null && clan1.isAlliance(clan2.getTag())) {
                 return ColorFixer.addColors(fileManager.getConfig().getFormatAlliance().replace("{tag}", String.valueOf(tag)));
             }
@@ -162,13 +167,13 @@ public class ClanPlaceholder extends PlaceholderExpansion implements Relational 
     }
 
     private String handleTopType(RankType rankType, String identifier, int top) {
-        Optional<PlayerStat> rank = plugin.getTopRankScheduler().getRank(rankType, top);
+        Optional<PlayerStat> rank = plugin.getRankingManager().findTopPlayerByIndex(rankType, top);
         if (rank.isEmpty())
             return "";
 
         PlayerStat playerStat = rank.get();
         if (identifier.endsWith("_value")) {
-            return String.valueOf(playerStat.getInt());
+            return String.valueOf(playerStat.getValue());
         }
         if (identifier.endsWith("_name")) {
             return String.valueOf(playerStat.getName());

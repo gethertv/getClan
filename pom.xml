@@ -6,7 +6,7 @@
 
     <groupId>dev.gether</groupId>
     <artifactId>getClan</artifactId>
-    <version>1.2.1</version>
+    <version>2.0-beta</version>
     <packaging>jar</packaging>
 
     <name>getClan</name>
@@ -33,7 +33,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.4</version>
+                <version>3.4.1</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -42,6 +42,16 @@
                         </goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <relocations>
+                                <relocation>
+                                    <pattern>org.yaml.snakeyaml</pattern>
+                                    <shadedPattern>dev.gether.getconfig.snakeyaml</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.fasterxml.jackson.dataformat</pattern>
+                                    <shadedPattern>dev.gether.getconfig.dataformat</shadedPattern>
+                                </relocation>
+                            </relocations>
                         </configuration>
                     </execution>
                 </executions>
@@ -83,6 +93,14 @@
     </repositories>
 
     <dependencies>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+            <version>2.16.0</version>
+        </dependency>
+
+
 <!--        hikariCP-->
         <dependency>
             <groupId>com.zaxxer</groupId>

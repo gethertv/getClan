@@ -1,4 +1,4 @@
-package dev.gether.getclan.model;
+package dev.gether.getclan.core.clan;
 
 import dev.gether.getconfig.utils.MessageUtil;
 import org.bukkit.Bukkit;
@@ -10,24 +10,25 @@ import java.util.UUID;
 
 public class Clan {
     private String tag;
+    private UUID uuid;
     private UUID ownerUUID;
     private UUID deputyOwnerUUID;
     private List<UUID> invitedPlayers = new ArrayList<>();
 
     private List<UUID> members = new ArrayList<>();
-
     private List<String> alliances = new ArrayList<>();
     private List<String> inviteAlliances = new ArrayList<>();
 
     private boolean pvpEnable;
 
-    public Clan(String tag, UUID ownerUUID, UUID deputyOwnerUUID, boolean pvpEnable) {
-        this(tag, ownerUUID, pvpEnable);
+    public Clan(String tag, UUID uuid, UUID ownerUUID, UUID deputyOwnerUUID, boolean pvpEnable) {
+        this(tag, uuid, ownerUUID, pvpEnable);
         this.deputyOwnerUUID = deputyOwnerUUID;
     }
 
-    public Clan(String tag, UUID ownerUUID, boolean pvpEnable) {
+    public Clan(String tag, UUID uuid, UUID ownerUUID, boolean pvpEnable) {
         this.tag = tag;
+        this.uuid = uuid;
         this.ownerUUID = ownerUUID;
         this.members.add(ownerUUID);
         this.pvpEnable = pvpEnable;
@@ -76,8 +77,8 @@ public class Clan {
     }
 
     public void broadcast(String message) {
-        members.forEach(uuid -> {
-            Player player = Bukkit.getPlayer(uuid);
+        members.forEach(memberUUID -> {
+            Player player = Bukkit.getPlayer(memberUUID);
             if(player != null)
                 MessageUtil.sendMessage(player, message);
         });
@@ -147,6 +148,10 @@ public class Clan {
        return (deputyOwnerUUID != null && deputyOwnerUUID.equals(uniqueId));
     }
 
+
+    public UUID getUuid() {
+        return uuid;
+    }
 
     public void togglePvp() {
         pvpEnable = !pvpEnable;

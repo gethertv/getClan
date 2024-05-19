@@ -1,15 +1,15 @@
-package dev.gether.getclan.manager;
+package dev.gether.getclan.core.clan;
 
 import dev.gether.getclan.GetClan;
 import dev.gether.getclan.config.FileManager;
 import dev.gether.getclan.event.*;
-import dev.gether.getclan.model.Clan;
 import dev.gether.getclan.model.CostType;
-import dev.gether.getclan.model.User;
+import dev.gether.getclan.core.user.User;
 import dev.gether.getclan.model.role.DeputyOwner;
 import dev.gether.getclan.model.role.Member;
 import dev.gether.getclan.model.role.Owner;
-import dev.gether.getclan.service.ClanService;
+import dev.gether.getclan.core.alliance.AllianceService;
+import dev.gether.getclan.core.user.UserManager;
 import dev.gether.getconfig.utils.ColorFixer;
 import dev.gether.getconfig.utils.ConsoleColor;
 import dev.gether.getconfig.utils.ItemUtil;
@@ -25,13 +25,15 @@ import java.util.stream.Collectors;
 
 public class ClanManager {
     private final GetClan plugin;
-    private ClanService clanService;
-    private HashMap<String, Clan> clansData = new HashMap<>();
+    private final ClanService clanService;
+    private final AllianceService allianceService;
+    private final HashMap<String, Clan> clansData = new HashMap<>();
     private final FileManager fileManager;
 
-    public ClanManager(GetClan plugin, ClanService clanService, FileManager fileManager) {
+    public ClanManager(GetClan plugin, ClanService clanService, AllianceService allianceService, FileManager fileManager) {
         this.plugin = plugin;
         this.clanService = clanService;
+        this.allianceService = allianceService;
         this.fileManager = fileManager;
     }
 
@@ -87,7 +89,8 @@ public class ClanManager {
             MessageUtil.sendMessage(sender, fileManager.getLangConfig().getMessage("admin-player-no-clan"));
             return;
         }
-        Clan clan = user.getClan();
+        String tag = user.getTag();
+        Clan clan = getClan(tag);
         // check event and set new owner
         boolean success = handleSetOwner(clan, newOwnerUUID);
         if (success)
@@ -179,10 +182,7 @@ public class ClanManager {
 
 
     public void infoClan(Player player, Clan clan) {
-        OptionalInt clanRankIndexByTag = plugin.getTopRankScheduler().getClanRankIndexByTag(clan.getTag());
-        int index = 9999;
-        if (clanRankIndexByTag.isPresent())
-            index = clanRankIndexByTag.getAsInt() + 1;
+        int index = plugin.getRankingManager().findTopClan(clan);
 
         String infoMessage = String.join("\n", fileManager.getLangConfig().getMessage("info-clan"));
         infoMessage = infoMessage.replace("{tag}", clan.getTag())
@@ -228,7 +228,7 @@ public class ClanManager {
         if (user == null || !user.hasClan())
             return fileManager.getConfig().getNonePointsClan();
 
-        Clan clan = user.getClan();
+        Clan clan = getClan(user.getTag());
         if (!doesClanFulfillThreshold(clan)) {
             return ColorFixer.addColors(fileManager.getConfig().getPlaceholderNeedMembers());
         }
@@ -237,6 +237,7 @@ public class ClanManager {
 
     public String getAveragePoint(Clan clan) {
         List<UUID> members = clan.getMembers();
+
         int sum = 0;
         int count = 0;
 
@@ -251,6 +252,9 @@ public class ClanManager {
             }
             sum += tempUser.getPoints();
             count++;
+        }
+        if(count == 0) {
+            new RuntimeException("Cannot division through 0");
         }
         double average = (double) sum / count;
         return String.valueOf((int) average);
@@ -298,7 +302,7 @@ public class ClanManager {
         JoinClanEvent event = new JoinClanEvent(clan, player);
         Bukkit.getPluginManager().callEvent(event);
         if (!event.isCancelled()) {
-            user.setClan(clan);
+            user.setTag(clan.getTag());
             clan.joinUser(player.getUniqueId());
             MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("player-joined-clan"));
             return;
@@ -337,20 +341,20 @@ public class ClanManager {
 
     private boolean deleteClan(Clan clan, Player player) {
         String tag = clan.getTag();
-        ClanManager clansManager = plugin.getClansManager();
+        ClanManager clansManager = plugin.getClanManager();
         for (UUID uuid : clan.getMembers()) {
             User member = plugin.getUserManager().getUserData().get(uuid);
-            member.setClan(null);
+            member.setTag(null);
         }
         for (String allianceTag : clan.getAlliances()) {
-            Clan allianceClan = clansManager.getClansData().get(allianceTag.toUpperCase());
-            allianceClan.getAlliances().remove(tag.toUpperCase());
-            clanService.deleteAlliance(tag);
+            Clan allianceClan = clansManager.getClansData().get(allianceTag);
+            allianceClan.getAlliances().remove(tag);
+            allianceService.deleteAlliance(tag);
         }
         clanService.deleteClan(tag);
         deleteClan(tag);
         // remove clan to system ranking
-        plugin.getTopRankScheduler().removeClan(clan);
+        plugin.getRankingManager().removeClan(clan);
         // if player is null that mean clan is removed by admin
         if (player != null) {
             MessageUtil.broadcast(fileManager.getLangConfig().getMessage("clan-deleted")
@@ -378,7 +382,7 @@ public class ClanManager {
             return;
         }
         // check the name is not busy
-        if (tagIsBusy(tag.toUpperCase())) {
+        if (tagIsBusy(tag)) {
             MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("clan-name-exists"));
             return;
         }
@@ -398,12 +402,13 @@ public class ClanManager {
         CreateClanEvent event = new CreateClanEvent(player, tag);
         Bukkit.getPluginManager().callEvent(event);
         if (!event.isCancelled()) {
-            Clan clan = new Clan(tag, player.getUniqueId(), fileManager.getConfig().isPvpClan());
-            clansData.put(tag.toUpperCase(), clan);
-            user.setClan(clan);
+            Clan clan = new Clan(tag, UUID.randomUUID(),  player.getUniqueId(), fileManager.getConfig().isPvpClan());
+            clansData.put(tag, clan);
+            user.setTag(clan.getTag());
+            plugin.getUserManager().update(user);
             clanService.createClan(clan, player);
             // add clan to system ranking
-            plugin.getTopRankScheduler().addClan(clan);
+            plugin.getRankingManager().addClan(clan);
             MessageUtil.broadcast(fileManager.getLangConfig().getMessage("clan-created")
                     .replace("{tag}", tag)
                     .replace("{player}", player.getName())
@@ -445,7 +450,7 @@ public class ClanManager {
         }
 
         // get user clan
-        Clan clan = user.getClan();
+        Clan clan = getClan(user.getTag());
         // kick player from clan
         handleKickUser(null, user, clan);
 
@@ -483,7 +488,7 @@ public class ClanManager {
         Bukkit.getPluginManager().callEvent(event);
         if (!event.isCancelled()) {
             clan.removeMember(kickedUser.getUuid());
-            kickedUser.setClan(null);
+            kickedUser.setTag(null);
             // if its null then mean the kicked user is from the console
             if (player != null)
                 MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("player-kicked-from-clan"));
@@ -519,7 +524,7 @@ public class ClanManager {
         Bukkit.getPluginManager().callEvent(event);
         if (!event.isCancelled()) {
             clan.removeMember(player.getUniqueId());
-            user.setClan(null);
+            user.setTag(null);
             MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("player-left-clan"));
         }
     }
@@ -552,7 +557,7 @@ public class ClanManager {
                 clan.removeAlliance(allianceClan.getTag());
                 allianceClan.removeAlliance(clan.getTag());
                 // add to database
-                clanService.deleteAlliance(clan.getTag());
+                allianceService.deleteAlliance(clan.getTag());
 
                 // message
                 MessageUtil.broadcast(fileManager.getLangConfig().getMessage("alliance-disbanded")
@@ -578,7 +583,7 @@ public class ClanManager {
                 clan.addAlliance(allianceClan.getTag());
                 allianceClan.addAlliance(clan.getTag());
                 // add to database
-                clanService.createAlliance(clan.getTag(), allianceClan.getTag());
+                allianceService.createAlliance(clan.getTag(), allianceClan.getTag());
 
                 // message
                 MessageUtil.broadcast(fileManager.getLangConfig().getMessage("alliance-formed")
@@ -626,7 +631,7 @@ public class ClanManager {
     public void setDeputy(Owner owner, Player target) {
         Player player = owner.getPlayer();
         User user = plugin.getUserManager().getUserData().get(player.getUniqueId());
-        Clan clan = user.getClan();
+        Clan clan = getClan(user.getTag());
         if (!isYourClan(clan, target.getUniqueId())) {
             MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("player-not-in-your-clan"));
             return;
@@ -635,7 +640,7 @@ public class ClanManager {
             MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("player-is-deputy"));
             return;
         }
-        DeputyChangeClanEvent event = new DeputyChangeClanEvent(user.getClan(), player, target);
+        DeputyChangeClanEvent event = new DeputyChangeClanEvent(clan, player, target);
         Bukkit.getPluginManager().callEvent(event);
         if (!event.isCancelled()) {
             clan.setDeputyOwnerUUID(target.getUniqueId());
@@ -653,12 +658,12 @@ public class ClanManager {
     }
 
     public Clan getClan(String tag) {
-        return clansData.get(tag.toUpperCase());
+        return clansData.get(tag);
     }
 
 
     public Clan deleteClan(String tag) {
-        return clansData.remove(tag.toUpperCase());
+        return clansData.remove(tag);
     }
 
     public HashMap<String, Clan> getClansData() {
@@ -666,4 +671,8 @@ public class ClanManager {
     }
 
 
+    public void loadClans() {
+        Set<Clan> clans = clanService.loadClans();
+        clans.forEach(clan -> clansData.put(clan.getTag(), clan));
+    }
 }
