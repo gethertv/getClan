@@ -1,4 +1,4 @@
-package dev.gether.getclan.handler.contextual;
+package dev.gether.getclan.cmd.context;
 
 
 import dev.gether.getclan.GetClan;
@@ -7,7 +7,7 @@ import dev.gether.getclan.core.clan.Clan;
 import dev.gether.getclan.core.clan.ClanManager;
 import dev.gether.getclan.core.user.User;
 import dev.gether.getclan.core.user.UserManager;
-import dev.gether.getclan.model.role.Owner;
+import dev.gether.getclan.cmd.context.domain.Owner;
 import dev.rollczi.litecommands.context.ContextProvider;
 import dev.rollczi.litecommands.context.ContextResult;
 import dev.rollczi.litecommands.invocation.Invocation;

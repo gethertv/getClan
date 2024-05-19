@@ -2,8 +2,6 @@ package dev.gether.getclan.ranking;
 
 import dev.gether.getclan.core.clan.ClanManager;
 import dev.gether.getclan.core.clan.Clan;
-import dev.gether.getclan.model.PlayerStat;
-import dev.gether.getclan.model.RankType;
 import dev.gether.getclan.core.user.User;
 
 import java.util.*;
@@ -35,9 +33,12 @@ public class RankingManager {
 
     public Optional<PlayerStat> findTopPlayerByIndex(RankType rankType, int index) {
         RankingService rankingService = ranking.get(rankType);
+        if(rankingService.size() <= index)
+            return Optional.empty();
+
         return rankingService.getByIndex(index);
     }
-    private void update(RankType rankType, UUID uuid, String name, double value) {
+    private void update(RankType rankType, UUID uuid, String name, int value) {
         RankingService rankingService = ranking.get(rankType);
         rankingService.add(uuid, name, value);
     }

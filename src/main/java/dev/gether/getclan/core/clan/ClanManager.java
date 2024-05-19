@@ -3,11 +3,11 @@ package dev.gether.getclan.core.clan;
 import dev.gether.getclan.GetClan;
 import dev.gether.getclan.config.FileManager;
 import dev.gether.getclan.event.*;
-import dev.gether.getclan.model.CostType;
+import dev.gether.getclan.core.CostType;
 import dev.gether.getclan.core.user.User;
-import dev.gether.getclan.model.role.DeputyOwner;
-import dev.gether.getclan.model.role.Member;
-import dev.gether.getclan.model.role.Owner;
+import dev.gether.getclan.cmd.context.domain.DeputyOwner;
+import dev.gether.getclan.cmd.context.domain.Member;
+import dev.gether.getclan.cmd.context.domain.Owner;
 import dev.gether.getclan.core.alliance.AllianceService;
 import dev.gether.getclan.core.user.UserManager;
 import dev.gether.getconfig.utils.ColorFixer;
@@ -135,7 +135,7 @@ public class ClanManager {
 
             );
             MessageUtil.sendMessage(target,
-                    fileManager.getLangConfig().getMessage("no-invitation")
+                    fileManager.getLangConfig().getMessage("clan-invitation-received")
                             .replace("{tag}", clan.getTag())
 
             );
@@ -254,7 +254,7 @@ public class ClanManager {
             count++;
         }
         if(count == 0) {
-            new RuntimeException("Cannot division through 0");
+            throw new RuntimeException("Cannot division through 0");
         }
         double average = (double) sum / count;
         return String.valueOf((int) average);
@@ -529,7 +529,7 @@ public class ClanManager {
         }
     }
 
-    private boolean isYourClan(Clan clan, UUID uuid) {
+    public boolean isYourClan(Clan clan, UUID uuid) {
         return clan.getMembers().contains(uuid);
     }
 
@@ -541,72 +541,7 @@ public class ClanManager {
         return clansData.get(tag) != null;
     }
 
-    public void alliance(DeputyOwner deputyOwner, Clan allianceClan) {
-        Clan clan = deputyOwner.getClan();
-        Player player = deputyOwner.getPlayer();
 
-        if (isYourClan(allianceClan, player.getUniqueId())) {
-            MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("cannot-alliance-own-clan"));
-            return;
-        }
-        if (clan.isAlliance(allianceClan.getTag())) {
-            DisbandAllianceEvent event = new DisbandAllianceEvent(clan, allianceClan);
-            Bukkit.getPluginManager().callEvent(event);
-            if (!event.isCancelled()) {
-                // remove alliance from both clan
-                clan.removeAlliance(allianceClan.getTag());
-                allianceClan.removeAlliance(clan.getTag());
-                // add to database
-                allianceService.deleteAlliance(clan.getTag());
-
-                // message
-                MessageUtil.broadcast(fileManager.getLangConfig().getMessage("alliance-disbanded")
-                        .replace("{first-clan}", clan.getTag())
-                        .replace("{second-clan}", allianceClan.getTag())
-                );
-            }
-            return;
-        }
-        // check limit
-        if (isLimitAlliance(clan)) {
-            MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("alliance-limit-reached"));
-            return;
-        }
-
-        // check if you have already been invited to the alliance.
-        if (allianceClan.isSuggestAlliance(clan.getTag())) {
-            CreateAllianceEvent event = new CreateAllianceEvent(clan, allianceClan);
-            Bukkit.getPluginManager().callEvent(event);
-            if (!event.isCancelled()) {
-                // add to both clan alliance
-                allianceClan.removeSuggestAlliance(clan.getTag());
-                clan.addAlliance(allianceClan.getTag());
-                allianceClan.addAlliance(clan.getTag());
-                // add to database
-                allianceService.createAlliance(clan.getTag(), allianceClan.getTag());
-
-                // message
-                MessageUtil.broadcast(fileManager.getLangConfig().getMessage("alliance-formed")
-                        .replace("{first-clan}", clan.getTag())
-                        .replace("{second-clan}", allianceClan.getTag())
-                );
-            }
-            return;
-        }
-        if (!clan.isSuggestAlliance(allianceClan.getTag())) {
-            clan.inviteAlliance(allianceClan.getTag());
-            MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("suggest-alliance"));
-            allianceClan.broadcast(fileManager.getLangConfig().getMessage("get-suggest-alliance")
-                    .replace("{tag}", clan.getTag())
-            );
-        } else {
-            clan.removeInviteAlliance(allianceClan.getTag());
-            MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("cancel-suggest-alliance")
-                    .replace("{tag}", allianceClan.getTag())
-            );
-        }
-
-    }
 
     public void removeDeputy(Owner owner) {
         Clan clan = owner.getClan();
@@ -649,11 +584,20 @@ public class ClanManager {
         }
     }
 
+    public void updateClans() {
+        clansData.values().forEach(clan -> {
+            if(clan.isUpdate()) {
+                clanService.updateClan(clan);
+                clan.setUpdate(false);
+            }
+        });
+    }
+
     public boolean doesClanFulfillThreshold(Clan clan) {
         return clan.getMembers().size() >= fileManager.getConfig().getMembersRequiredForRanking();
     }
 
-    private boolean isLimitAlliance(Clan clan) {
+    public boolean isLimitAlliance(Clan clan) {
         return clan.getAlliances().size() >= fileManager.getConfig().getLimitAlliance();
     }
 
@@ -666,7 +610,7 @@ public class ClanManager {
         return clansData.remove(tag);
     }
 
-    public HashMap<String, Clan> getClansData() {
+    public Map<String, Clan> getClansData() {
         return clansData;
     }
 

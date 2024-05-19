@@ -4,10 +4,11 @@ import dev.gether.getclan.GetClan;
 import dev.gether.getclan.config.FileManager;
 import dev.gether.getclan.core.clan.ClanManager;
 import dev.gether.getclan.core.clan.Clan;
-import dev.gether.getclan.model.PlayerStat;
-import dev.gether.getclan.model.RankType;
+import dev.gether.getclan.ranking.PlayerStat;
+import dev.gether.getclan.ranking.RankType;
 import dev.gether.getclan.core.user.User;
 import dev.gether.getconfig.utils.ColorFixer;
+import dev.gether.getconfig.utils.MessageUtil;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import me.clip.placeholderapi.expansion.Relational;
 import org.bukkit.OfflinePlayer;
@@ -167,6 +168,7 @@ public class ClanPlaceholder extends PlaceholderExpansion implements Relational 
     }
 
     private String handleTopType(RankType rankType, String identifier, int top) {
+        top = top - 1;
         Optional<PlayerStat> rank = plugin.getRankingManager().findTopPlayerByIndex(rankType, top);
         if (rank.isEmpty())
             return "";

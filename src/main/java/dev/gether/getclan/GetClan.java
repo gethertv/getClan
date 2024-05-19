@@ -11,18 +11,18 @@ import dev.gether.getclan.core.alliance.AllianceManager;
 import dev.gether.getclan.database.MySQL;
 import dev.gether.getclan.handler.CustomInvalidUsage;
 import dev.gether.getclan.handler.PermissionMessage;
-import dev.gether.getclan.handler.contextual.DeputyOwnerContextual;
-import dev.gether.getclan.handler.contextual.MemberContextual;
-import dev.gether.getclan.handler.contextual.OwnerContextual;
+import dev.gether.getclan.cmd.context.DeputyOwnerContextual;
+import dev.gether.getclan.cmd.context.MemberContextual;
+import dev.gether.getclan.cmd.context.OwnerContextual;
 import dev.gether.getclan.listener.*;
 import dev.gether.getclan.core.clan.ClanManager;
 import dev.gether.getclan.core.CooldownManager;
 import dev.gether.getclan.core.user.UserManager;
 import dev.gether.getclan.core.clan.Clan;
 import dev.gether.getclan.core.user.User;
-import dev.gether.getclan.model.role.DeputyOwner;
-import dev.gether.getclan.model.role.Member;
-import dev.gether.getclan.model.role.Owner;
+import dev.gether.getclan.cmd.context.domain.DeputyOwner;
+import dev.gether.getclan.cmd.context.domain.Member;
+import dev.gether.getclan.cmd.context.domain.Owner;
 import dev.gether.getclan.placeholder.ClanPlaceholder;
 import dev.gether.getclan.ranking.RankingManager;
 import dev.gether.getclan.core.alliance.AllianceService;
@@ -69,6 +69,7 @@ public final class GetClan extends JavaPlugin {
         this.fileManager = new FileManager(this);
     }
 
+
     @Override
     public void onEnable() {
         // setup the economy plugin VAULT
@@ -77,7 +78,6 @@ public final class GetClan extends JavaPlugin {
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
-
         // initialize mysql
         mySQL = new MySQL(this, fileManager);
 
@@ -89,6 +89,7 @@ public final class GetClan extends JavaPlugin {
 
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
             clanPlaceholder = new ClanPlaceholder(this, fileManager, clanManager);
+            clanPlaceholder.register();
             MessageUtil.logMessage(ConsoleColor.GREEN, "Successfully implement the placeholders");
         }
 
@@ -100,7 +101,7 @@ public final class GetClan extends JavaPlugin {
         // manager
         userManager = new UserManager(userService, this, fileManager);
         clanManager = new ClanManager(this, clanService, allianceService, fileManager);
-        allianceManager = new AllianceManager(this, allianceService);
+        allianceManager = new AllianceManager(this, allianceService, fileManager);
         cooldownManager = new CooldownManager();
 
         // load data form database
@@ -124,6 +125,8 @@ public final class GetClan extends JavaPlugin {
 
         Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
             MessageUtil.logMessage(ConsoleColor.GREEN, "Starting update data to mysql...");
+            userManager.updateUsers();
+            clanManager.updateClans();
             mySQL.executeQueued();
         }, 20L * 10, 20L * 10);
 
@@ -134,7 +137,6 @@ public final class GetClan extends JavaPlugin {
         Metrics metrics = new Metrics(this, 19808);
 
     }
-
 
     @Override
     public void onDisable() {
@@ -214,20 +216,19 @@ public final class GetClan extends JavaPlugin {
     public RankingManager getRankingManager() {
         return rankingManager;
     }
-
     public UserManager getUserManager() {
         return userManager;
     }
-
     public Economy getEconomy() {
         return economy;
     }
-
     public FileManager getFileManager() {
         return fileManager;
     }
-
     public ClanManager getClanManager() {
         return clanManager;
+    }
+    public AllianceManager getAllianceManager() {
+        return allianceManager;
     }
 }

@@ -20,6 +20,7 @@ public class Clan {
     private List<String> inviteAlliances = new ArrayList<>();
 
     private boolean pvpEnable;
+    private boolean update = false;
 
     public Clan(String tag, UUID uuid, UUID ownerUUID, UUID deputyOwnerUUID, boolean pvpEnable) {
         this(tag, uuid, ownerUUID, pvpEnable);
@@ -33,25 +34,24 @@ public class Clan {
         this.members.add(ownerUUID);
         this.pvpEnable = pvpEnable;
     }
-    public boolean isAlliance(String tag)
-    {
+
+    public boolean isAlliance(String tag) {
         return alliances.contains(tag.toUpperCase());
     }
 
-    public boolean isMember(UUID uuid)
-    {
+    public boolean isMember(UUID uuid) {
         return members.contains(uuid);
     }
-    public boolean removeAlliance(String tag)
-    {
+
+    public boolean removeAlliance(String tag) {
         return alliances.remove(tag.toUpperCase());
     }
-    public void addAlliance(String tag)
-    {
+
+    public void addAlliance(String tag) {
         alliances.add(tag.toUpperCase());
     }
-    public boolean hasInvite(UUID uuid)
-    {
+
+    public boolean hasInvite(UUID uuid) {
         return invitedPlayers.contains(uuid);
     }
 
@@ -64,13 +64,13 @@ public class Clan {
         members.add(uuid);
     }
 
-    public void resetInvite()
-    {
+    public void resetInvite() {
         inviteAlliances.clear();
         invitedPlayers.clear();
     }
+
     public void removeMember(UUID uuid) {
-        if(deputyOwnerUUID!=null && deputyOwnerUUID.equals(uuid))
+        if (deputyOwnerUUID != null && deputyOwnerUUID.equals(uuid))
             deputyOwnerUUID = null;
 
         members.remove(uuid);
@@ -79,16 +79,19 @@ public class Clan {
     public void broadcast(String message) {
         members.forEach(memberUUID -> {
             Player player = Bukkit.getPlayer(memberUUID);
-            if(player != null)
+            if (player != null)
                 MessageUtil.sendMessage(player, message);
         });
     }
+
     public void invite(UUID uuid) {
         invitedPlayers.add(uuid);
     }
+
     public void cancelInvite(UUID uuid) {
         invitedPlayers.remove(uuid);
     }
+
     public List<UUID> getMembers() {
         return members;
     }
@@ -112,19 +115,20 @@ public class Clan {
 
     public void setDeputyOwnerUUID(UUID deputyOwnerUUID) {
         this.deputyOwnerUUID = deputyOwnerUUID;
+        this.update = true;
     }
 
     public void setOwner(UUID newOwnerUUID) {
         ownerUUID = newOwnerUUID;
+        this.update = true;
     }
 
 
-    public boolean isSuggestAlliance(String tag)
-    {
+    public boolean isSuggestAlliance(String tag) {
         return inviteAlliances.contains(tag);
     }
-    public boolean inviteAlliance(String tag)
-    {
+
+    public boolean inviteAlliance(String tag) {
         return inviteAlliances.add(tag);
     }
 
@@ -132,10 +136,10 @@ public class Clan {
         inviteAlliances.remove(tag);
     }
 
-    public void removeSuggestAlliance(String tag)
-    {
+    public void removeSuggestAlliance(String tag) {
         inviteAlliances.remove(tag);
     }
+
     public boolean isOwner(UUID uuid) {
         return ownerUUID.equals(uuid);
     }
@@ -145,9 +149,8 @@ public class Clan {
     }
 
     public boolean isDeputy(UUID uniqueId) {
-       return (deputyOwnerUUID != null && deputyOwnerUUID.equals(uniqueId));
+        return (deputyOwnerUUID != null && deputyOwnerUUID.equals(uniqueId));
     }
-
 
     public UUID getUuid() {
         return uuid;
@@ -155,5 +158,14 @@ public class Clan {
 
     public void togglePvp() {
         pvpEnable = !pvpEnable;
+        this.update = true;
+    }
+
+    public boolean isUpdate() {
+        return update;
+    }
+
+    public void setUpdate(boolean update) {
+        this.update = update;
     }
 }

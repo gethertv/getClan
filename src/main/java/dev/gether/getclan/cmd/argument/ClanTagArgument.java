@@ -1,8 +1,8 @@
 package dev.gether.getclan.cmd.argument;
 
 import dev.gether.getclan.config.FileManager;
-import dev.gether.getclan.core.clan.ClanManager;
 import dev.gether.getclan.core.clan.Clan;
+import dev.gether.getclan.core.clan.ClanManager;
 import dev.rollczi.litecommands.argument.Argument;
 import dev.rollczi.litecommands.argument.parser.ParseResult;
 import dev.rollczi.litecommands.argument.resolver.ArgumentResolver;
@@ -11,6 +11,7 @@ import dev.rollczi.litecommands.suggestion.SuggestionContext;
 import dev.rollczi.litecommands.suggestion.SuggestionResult;
 import org.bukkit.command.CommandSender;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class ClanTagArgument extends ArgumentResolver<CommandSender, Clan> {
@@ -36,15 +37,15 @@ public class ClanTagArgument extends ArgumentResolver<CommandSender, Clan> {
 
     @Override
     public SuggestionResult suggest(Invocation<CommandSender> invocation, Argument<Clan> argument, SuggestionContext context) {
-        return SuggestionResult.of(
-                this.clansManager.getClansData().keySet()
-                                .stream()
-                                .filter(tag -> tag.toUpperCase().startsWith(argument.getName().toUpperCase()))
-                                .sorted()
-                                .limit(5)
-                                .collect(Collectors.toList())
-        );
+        List<String> sortedTags = this.clansManager.getClansData().keySet().stream()
+                .sorted()
+                .limit(5)
+                .collect(Collectors.toList());
+
+        return SuggestionResult.of(sortedTags);
     }
+
+
 
 }
 

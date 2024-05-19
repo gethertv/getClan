@@ -11,7 +11,6 @@ import dev.gether.getconfig.utils.MessageUtil;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Queue;
@@ -55,35 +54,48 @@ public class MySQL {
     }
 
     public void executeQueued() {
+        final int BATCH_LIMIT = 1000;
+        int countQuery = 0;
+
         try (Connection conn = this.hikariDataSource.getConnection()) {
-            conn.setAutoCommit(false); // Start transaction block
-            int countQuery = 0;
+            conn.setAutoCommit(false);
 
             while (!queuedQueries.isEmpty()) {
-                QueuedQuery queuedQuery = queuedQueries.poll();
-                MessageUtil.broadcast(queuedQuery.getSql());
+                int batchCount = 0;
 
-                try (PreparedStatement statement = conn.prepareStatement(queuedQuery.getSql())) {
-                    List<Object> parameters = queuedQuery.getParameters();
-                    for (int i = 0; i < parameters.size(); i++) {
-                        statement.setObject(i + 1, parameters.get(i));
+                while (!queuedQueries.isEmpty() && batchCount < BATCH_LIMIT) {
+                    QueuedQuery queuedQuery = queuedQueries.poll();
+
+                    try (PreparedStatement statement = conn.prepareStatement(queuedQuery.getSql())) {
+                        List<Object> parameters = queuedQuery.getParameters();
+
+                        for (int i = 0; i < parameters.size(); i++) {
+                            Object param = parameters.get(i);
+                            statement.setObject(i + 1, param);
+                        }
+
+                        statement.addBatch();
+                        batchCount++;
+                        countQuery++;
+
+                        statement.executeBatch();
+                    } catch (SQLException e) {
+                        conn.rollback();
+                        MessageUtil.logMessage(ConsoleColor.RED, "[MySQL] - Error executing batch query: " + e.getMessage());
+                        return;
                     }
-                    statement.addBatch(); // add to batch
-                    countQuery++;
-                    statement.executeBatch(); // Execute batch for this statement
-                } catch (SQLException e) {
-                    conn.rollback();
-                    MessageUtil.logMessage(ConsoleColor.RED, "[MySQL] - Error executing query: " + e.getMessage());
-                    return; // Exit if there's an error
                 }
             }
 
-            conn.commit(); // Commit transaction
+            conn.commit();
             MessageUtil.logMessage(ConsoleColor.GREEN, "Successfully executed " + countQuery + " queries.");
         } catch (SQLException e) {
             MessageUtil.logMessage(ConsoleColor.RED, "[MySQL] - Error obtaining connection or handling transaction: " + e.getMessage());
         }
     }
+
+
+
 
 
     public HikariDataSource getHikariDataSource() {

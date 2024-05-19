@@ -35,10 +35,34 @@ public class UserManager {
         }
     }
 
+    public void updateUsers() {
+        userData.values().forEach(user -> {
+            if(user.isUpdate()) {
+                update(user);
+                user.setUpdate(false);
+            }
+        });
+    }
     public void resetUser(User user) {
         user.setPoints(fileManager.getConfig().getDefaultPoints());
         user.resetKill();
         user.resetDeath();
+    }
+
+    public void loadUsers() {
+        Set<User> users = userService.loadUsers();
+        users.forEach(user -> {
+            if(user.hasClan()) {
+                Clan clan = plugin.getClanManager().getClan(user.getTag());
+                if(!clan.isOwner(user.getUuid()))
+                    clan.addMember(user.getUuid());
+            }
+            userData.put(user.getUuid(), user);
+        });
+    }
+
+    public void update(User user) {
+        userService.updateUser(user);
     }
 
 
@@ -68,7 +92,6 @@ public class UserManager {
         return findUserByUUID(player.getUniqueId());
     }
 
-
     public void resetPoints(User user) {
         user.setPoints(fileManager.getConfig().getDefaultPoints());
     }
@@ -85,19 +108,5 @@ public class UserManager {
         return userData;
     }
 
-    public void loadUsers() {
-        Set<User> users = userService.loadUsers();
-        users.forEach(user -> {
-            if(user.hasClan()) {
-                Clan clan = plugin.getClanManager().getClan(user.getTag());
-                if(!clan.isOwner(user.getUuid()))
-                    clan.addMember(user.getUuid());
-            }
-            userData.put(user.getUuid(), user);
-        });
-    }
 
-    public void update(User user) {
-        userService.updateUser(user);
-    }
 }

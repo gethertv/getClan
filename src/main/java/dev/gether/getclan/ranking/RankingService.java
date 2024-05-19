@@ -1,16 +1,14 @@
 package dev.gether.getclan.ranking;
 
-import dev.gether.getclan.model.PlayerStat;
-
-import java.util.ArrayList;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 public class RankingService {
-    private ArrayList<PlayerStat> ranking = new ArrayList<>();
-    public void add(UUID uuid, String name, double value) {
+    private List<PlayerStat> ranking = new LinkedList<>();
+    public void add(UUID uuid, String name, int value) {
         remove(uuid);
         ranking.add(new PlayerStat(uuid, name, value));
+        Collections.sort(ranking);
+        Collections.reverse(ranking);
     }
 
     public void remove(UUID uuid) {
@@ -27,5 +25,8 @@ public class RankingService {
             }
         }
         return -1;
+    }
+    public int size() {
+        return ranking.size();
     }
 }

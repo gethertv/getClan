@@ -5,7 +5,7 @@ import dev.gether.getclan.core.clan.ClanManager;
 import dev.gether.getclan.core.user.UserManager;
 import dev.gether.getclan.core.clan.Clan;
 import dev.gether.getclan.core.user.User;
-import dev.gether.getclan.model.role.Owner;
+import dev.gether.getclan.cmd.context.domain.Owner;
 import dev.rollczi.litecommands.argument.Argument;
 import dev.rollczi.litecommands.argument.parser.ParseResult;
 import dev.rollczi.litecommands.argument.resolver.ArgumentResolver;

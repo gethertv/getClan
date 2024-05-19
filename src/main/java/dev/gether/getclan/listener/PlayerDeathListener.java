@@ -4,7 +4,7 @@ import dev.gether.getclan.GetClan;
 import dev.gether.getclan.config.FileManager;
 import dev.gether.getclan.event.PointsChangeUserEvent;
 import dev.gether.getclan.core.user.UserManager;
-import dev.gether.getclan.model.AntySystemRank;
+import dev.gether.getclan.core.AntySystemRank;
 import dev.gether.getclan.core.user.User;
 import dev.gether.getclan.utils.SystemPoint;
 import dev.gether.getconfig.utils.MessageUtil;

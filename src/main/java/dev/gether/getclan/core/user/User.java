@@ -12,7 +12,7 @@ public class User {
     private int death;
     private int points;
     private String tag;
-
+    private boolean update = false;
     public User(UUID uuid, String name, int kills, int death, int points, String tag) {
         this.kills = kills;
         this.death = death;
@@ -32,26 +32,42 @@ public class User {
 
     public void increaseDeath() {
         this.death++;
+        this.update = true;
     }
 
     public void increaseKill() {
         this.kills++;
+        this.update = true;
     }
 
     public void takePoint(int points) {
         this.points -= points;
+        this.update = true;
     }
 
     public void addPoint(int points) {
         this.points += points;
-    }
-
-    public void setPoints(int points) {
-        this.points = points;
+        this.update = true;
     }
 
     public void setTag(String tag) {
         this.tag = tag;
+        this.update = true;
+    }
+
+    public void resetKill() {
+        kills = 0;
+        this.update = true;
+    }
+
+    public void resetDeath() {
+        death = 0;
+        this.update = true;
+    }
+
+    public void setPoints(int points) {
+        this.points = points;
+        this.update = true;
     }
 
     public String getTag() {
@@ -62,12 +78,9 @@ public class User {
         return tag != null;
     }
 
-    public void resetKill() {
-        kills = 0;
-    }
 
-    public void resetDeath() {
-        death = 0;
+    public boolean isUpdate() {
+        return update;
     }
 
     public int getKills() {
@@ -88,5 +101,9 @@ public class User {
 
     public String getName() {
         return name;
+    }
+
+    public void setUpdate(boolean status) {
+        this.update = status;
     }
 }

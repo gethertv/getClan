@@ -6,7 +6,7 @@
 
     <groupId>dev.gether</groupId>
     <artifactId>getClan</artifactId>
-    <version>2.0-beta</version>
+    <version>2.0.1-beta</version>
     <packaging>jar</packaging>
 
     <name>getClan</name>
@@ -90,6 +90,12 @@
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
         </repository>
+
+        <repository>
+            <id>dmulloy2-repo</id>
+            <url>https://repo.dmulloy2.net/repository/public/</url>
+        </repository>
+
     </repositories>
 
     <dependencies>
@@ -139,6 +145,22 @@
             <version>1.16.5-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot</artifactId>
+            <version>1.18.2-R0.1-SNAPSHOT</version>
+            <!--            <classifier>remapped-mojang</classifier>-->
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.comphenix.protocol</groupId>
+            <artifactId>ProtocolLib</artifactId>
+            <version>5.1.0</version>
+            <scope>provided</scope>
+        </dependency>
+
         <dependency>
             <groupId>com.github.MilkBowl</groupId>
             <artifactId>VaultAPI</artifactId>

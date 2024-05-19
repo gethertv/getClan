@@ -1,4 +1,4 @@
-package dev.gether.getclan.model;
+package dev.gether.getclan.ranking;
 
 import lombok.Getter;
 
@@ -8,9 +8,9 @@ import java.util.UUID;
 public class PlayerStat implements Comparable<PlayerStat>{
     private UUID uuid;
     private String name;
-    private double value;
+    private int value;
 
-    public PlayerStat(UUID uuid, String name, double value) {
+    public PlayerStat(UUID uuid, String name, int value) {
         this.uuid = uuid;
         this.name = name;
         this.value = value;
@@ -18,8 +18,8 @@ public class PlayerStat implements Comparable<PlayerStat>{
 
     @Override
     public int compareTo(PlayerStat other) {
-        int compare = Double.compare(this.value, other.value);
-        if(compare != 0) return compare;
+        int compare = Integer.compare(this.value, other.value);
+        if (compare != 0) return compare;
         return this.uuid.compareTo(other.uuid);
     }
 

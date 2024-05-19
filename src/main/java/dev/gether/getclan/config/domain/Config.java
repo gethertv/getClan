@@ -1,6 +1,6 @@
 package dev.gether.getclan.config.domain;
 
-import dev.gether.getclan.model.CostType;
+import dev.gether.getclan.core.CostType;
 import dev.gether.getconfig.GetConfig;
 import dev.gether.getconfig.annotation.Comment;
 import lombok.Getter;

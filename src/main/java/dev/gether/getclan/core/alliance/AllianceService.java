@@ -46,8 +46,8 @@ public class AllianceService implements GetTable {
              ResultSet resultSet = stmt.executeQuery()) {
 
             while (resultSet.next()) {
-                String clanTag1 = resultSet.getString("clan_tag1").toUpperCase();
-                String clanTag2 = resultSet.getString("clan_tag2").toUpperCase();
+                String clanTag1 = resultSet.getString("clan_tag1");
+                String clanTag2 = resultSet.getString("clan_tag2");
 
                 alliances.put(clanTag1, clanTag2);
                 allianceCount++;

@@ -6,9 +6,9 @@ import dev.gether.getclan.core.clan.ClanManager;
 import dev.gether.getclan.core.user.UserManager;
 import dev.gether.getclan.core.clan.Clan;
 import dev.gether.getclan.core.user.User;
-import dev.gether.getclan.model.role.DeputyOwner;
-import dev.gether.getclan.model.role.Member;
-import dev.gether.getclan.model.role.Owner;
+import dev.gether.getclan.cmd.context.domain.DeputyOwner;
+import dev.gether.getclan.cmd.context.domain.Member;
+import dev.gether.getclan.cmd.context.domain.Owner;
 import dev.gether.getconfig.utils.MessageUtil;
 import dev.rollczi.litecommands.annotations.argument.Arg;
 import dev.rollczi.litecommands.annotations.command.Command;
@@ -76,12 +76,12 @@ public class ClanCommand {
         plugin.getClanManager().infoClan(player, clan);
     }
     @Execute(name = "setowner")
-    public void setOwner(@Context CommandSender sender, @Arg Owner owner, @Arg("player") Player target) {
+    public void setOwner(@Context Owner owner, @Arg("player") Player target) {
         plugin.getClanManager().setOwner(owner, target);
     }
 
     @Execute(name = "deputy")
-    public void setDeputy(@Context CommandSender sender, @Arg Owner owner, @Arg("player") Player target) {
+    public void setDeputy(@Context Owner owner, @Arg("player") Player target) {
         plugin.getClanManager().setDeputy(owner, target);
     }
     @Execute(name = "removedeputy")
@@ -90,17 +90,17 @@ public class ClanCommand {
     }
 
     @Execute(name = "invite")
-    public void inviteUser(@Context CommandSender sender, @Arg DeputyOwner deputyOwner, @Arg("player") Player target) {
+    public void inviteUser(@Context DeputyOwner deputyOwner, @Arg("player") Player target) {
         plugin.getClanManager().inviteUser(deputyOwner, target);
     }
     @Execute(name = "kick")
-    public void kickUser(@Context CommandSender sender, @Arg DeputyOwner deputyOwner, @Arg("nickname") String username) {
+    public void kickUser(@Context DeputyOwner deputyOwner, @Arg("nickname") String username) {
         plugin.getClanManager().kickUser(deputyOwner, username);
     }
 
     @Execute(name = "alliance")
-    public void alliace(@Context CommandSender sender, @Arg DeputyOwner deputyOwner, @Arg("tag") Clan clan) {
-        plugin.getClanManager().alliance(deputyOwner, clan);
+    public void alliace(@Context DeputyOwner deputyOwner, @Arg("tag") Clan clan) {
+        plugin.getAllianceManager().alliance(deputyOwner, clan);
     }
 
     @Execute(name = "join")
@@ -128,7 +128,7 @@ public class ClanCommand {
     }
 
     @Execute(name = "pvp")
-    public void changePvpStatusClan(@Context CommandSender sender, @Arg DeputyOwner deputyOwner) {
+    public void changePvpStatusClan(@Context DeputyOwner deputyOwner) {
         plugin.getClanManager().changePvpStatus(deputyOwner);
     }
 

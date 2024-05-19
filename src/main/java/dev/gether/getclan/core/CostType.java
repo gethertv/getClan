@@ -1,4 +1,4 @@
-package dev.gether.getclan.model;
+package dev.gether.getclan.core;
 
 public enum CostType {
     ITEM,

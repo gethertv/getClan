@@ -1,4 +1,4 @@
-package dev.gether.getclan.model;
+package dev.gether.getclan.ranking;
 
 public enum RankType {
     KILLS,

@@ -1,9 +1,6 @@
-package dev.gether.getclan.model;
-
-import org.bukkit.entity.Player;
+package dev.gether.getclan.core;
 
 import java.util.HashMap;
-import java.util.UUID;
 
 public class AntySystemRank {
     private String ipKiller;
@@ -13,21 +10,19 @@ public class AntySystemRank {
 
     public AntySystemRank(String ipKiller, String ipDeath, int timeSec) {
         this.ipKiller = ipKiller;
-        this.cooldown.put(ipDeath, System.currentTimeMillis()+(timeSec*1000L));
+        this.cooldown.put(ipDeath, System.currentTimeMillis() + (timeSec * 1000L));
     }
 
-    public boolean isPlayerKillable(String ipDeath)
-    {
+    public boolean isPlayerKillable(String ipDeath) {
         Long lastDeath = cooldown.get(ipDeath);
-        if(lastDeath==null)
+        if (lastDeath == null)
             return true;
 
-        return lastDeath<=System.currentTimeMillis();
+        return lastDeath <= System.currentTimeMillis();
     }
 
-    public void addCooldown(String ipDeath, int timeSec)
-    {
-        this.cooldown.put(ipDeath, System.currentTimeMillis()+(timeSec*1000L));
+    public void addCooldown(String ipDeath, int timeSec) {
+        this.cooldown.put(ipDeath, System.currentTimeMillis() + (timeSec * 1000L));
     }
 
     public long getRemainingCooldown(String playerIp) {
