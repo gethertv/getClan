@@ -15,6 +15,9 @@ public class RankingService {
         ranking.removeIf(playerStat -> playerStat.getUuid().equals(uuid));
     }
     public Optional<PlayerStat> getByIndex(int index) {
+        if(index < 0)
+            return Optional.empty();
+
         return Optional.ofNullable(ranking.get(index));
     }
 

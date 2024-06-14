@@ -17,6 +17,14 @@ public class Config extends GetConfig {
 
     @Comment({"Language | Język  [PL, EN]", "Language | Language selection [PL, EN]"})
     private LangType langType = LangType.EN;
+
+    @Comment({"Napis na środku ekranu po śmierci", "Show title after death"})
+    private boolean titleAlert = true;
+    private int fadeIn = 10;
+    private int stay = 40;
+    private int fadeOut = 10;
+    @Comment({"System punktacji", "Points conversion system"})
+    private String calcPoints = "{old_rating} + (30 * ({score} - (1 / (1 + pow(10, ({opponent_rating} - {old_rating}) / 400)))))";
     @Comment({"Domyślna ilość punktów dla gracza", "Default points for players"})
     private int defaultPoints = 500;
     @Comment({"Limit sojusznikow dla klanu", "Alliance limit for clans"})
@@ -34,7 +42,6 @@ public class Config extends GetConfig {
     private boolean systemAntiabuse = true;
     @Comment({"Co ile sekund nadal mozna zabic tego samego gracza", "Cooldown time in seconds for killing the same player"})
     private int cooldown = 300;
-
     @Comment({"Czy wlaczyc platne tworzenie klanu (true | false)", "Enable paid clan creation (true | false)"})
     private boolean enablePayment = true;
     @Comment({"Jezeli opcja powyzej jest wlaczona to jaka metoda platnosci (ITEM|VAULT)", "If the above option is enabled, specify payment method (ITEM|VAULT)"})
@@ -42,29 +49,27 @@ public class Config extends GetConfig {
     @Comment({"Koszt - VAULT | ITEM", "Cost - VAULT | ITEM"})
     private double costCreate = 10;
     private ItemStack itemCost = new ItemStack(Material.STONE);
-
     @Comment("ilość osób potrzebnych do liczenia rankingu klanu")
     private int membersRequiredForRanking = 3;
     @Comment("co ma zwracac placeholder gdy klan nie posida tylu czonkow do liczenia pkt")
-    private String placeholderNeedMembers = "&ebrakuje 3 os";
+    private String placeholderNeedMembers = "&eneed 3 users";
     @Comment({"Ograniczenia długości tagu klanu", "Clan tag length restrictions"})
     private int clansTagLengthMin = 2;
     private int clansTagLengthMax = 6;
     private String colorOnlinePlayer = "&a";
     private String colorOfflinePlayer = "&7";
 
-
     @Comment({"Gdy zastępca lidera nie jest ustawiony", "When deputy leader is not set"})
-    private String noneDeputy = "Brak";
+    private String noneDeputy = "None";
 
     @Comment({"Placeholder %getclan_user_has_clan% kiedy nie/posiadasz klanu", "Placeholder %getclan_user_has_clan% when you have/not a clan"})
     private String hasNotClan = "false";
     private String hasClan = "true";
 
     @Comment({"Placeholder FORMAT kiedy nie posiadasz TAGU klanu", "Placeholder format when you don't have a clan TAG"})
-    private String noneTag = "Brak";
+    private String noneTag = "None";
     @Comment({"Placeholder FORMAT kiedy nie posidasz punktów klanu", "Placeholder format when you don't have clan points"})
-    private String nonePointsClan = "Brak";
+    private String nonePointsClan = "None";
     @Comment({"[%getclan_user_format_points%] Format dla punktów gracza", "[%getclan_user_format_points%] Format for player points"})
     private String formatUserPoints = "&7[&f{points}&7]";
     @Comment({"[%getclan_clan_format_points%] Format dla punktów klanu", "[%getclan_clan_format_points%] Format for clan points"})

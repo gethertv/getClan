@@ -53,7 +53,7 @@ public class RankingManager {
     }
 
     public int findTopClan(Clan clan) {
-        RankingService rankingService = ranking.get(RankType.USER_POINTS);
+        RankingService rankingService = ranking.get(RankType.CLAN_POINTS);
         return rankingService.getIndexByUUID(clan.getUuid());
     }
 

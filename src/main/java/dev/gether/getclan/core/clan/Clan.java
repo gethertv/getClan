@@ -1,12 +1,19 @@
 package dev.gether.getclan.core.clan;
 
+import dev.gether.getclan.GetClan;
+import dev.gether.getclan.config.domain.UpgradesConfig;
+import dev.gether.getclan.core.upgrade.LevelData;
+import dev.gether.getclan.core.upgrade.UpgradeCost;
+import dev.gether.getclan.core.upgrade.UpgradeType;
+import dev.gether.getconfig.utils.ColorFixer;
 import dev.gether.getconfig.utils.MessageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Clan {
     private String tag;
@@ -14,25 +21,35 @@ public class Clan {
     private UUID ownerUUID;
     private UUID deputyOwnerUUID;
     private List<UUID> invitedPlayers = new ArrayList<>();
-
     private List<UUID> members = new ArrayList<>();
     private List<String> alliances = new ArrayList<>();
     private List<String> inviteAlliances = new ArrayList<>();
-
+    private Map<UpgradeType, LevelData> upgrades;
     private boolean pvpEnable;
     private boolean update = false;
+    private Inventory inventory;
 
-    public Clan(String tag, UUID uuid, UUID ownerUUID, UUID deputyOwnerUUID, boolean pvpEnable) {
-        this(tag, uuid, ownerUUID, pvpEnable);
+    public Clan(String tag, UUID uuid, UUID ownerUUID, UUID deputyOwnerUUID, boolean pvpEnable, UpgradesConfig upgradesConfig, Map<UpgradeType, LevelData> upgrades) {
+        this(tag, uuid, ownerUUID, pvpEnable, upgradesConfig);
         this.deputyOwnerUUID = deputyOwnerUUID;
+        this.upgrades = upgrades;
+
     }
 
-    public Clan(String tag, UUID uuid, UUID ownerUUID, boolean pvpEnable) {
+    public Clan(String tag, UUID uuid, UUID ownerUUID, boolean pvpEnable, UpgradesConfig upgradesConfig) {
         this.tag = tag;
         this.uuid = uuid;
         this.ownerUUID = ownerUUID;
         this.members.add(ownerUUID);
         this.pvpEnable = pvpEnable;
+        this.upgrades = Arrays.stream(UpgradeType.values())
+                .collect(Collectors.toMap(type -> type, type -> new LevelData(0, 0)));
+
+        inventory = Bukkit.createInventory(null, upgradesConfig.getInventoryBase().getSize(), ColorFixer.addColors(upgradesConfig.getInventoryBase().getTitle()));
+        upgradesConfig.getInventoryBase().getItemsDecoration().forEach(itemDecoration -> {
+            ItemStack itemStack = itemDecoration.getItemStack();
+            itemDecoration.getSlots().forEach(slot -> inventory.setItem(slot, itemStack));
+        });
     }
 
     public boolean isAlliance(String tag) {
@@ -167,5 +184,14 @@ public class Clan {
 
     public void setUpdate(boolean update) {
         this.update = update;
+    }
+
+    public Inventory getInventory() {
+        return inventory;
+    }
+
+
+    public Map<UpgradeType, LevelData> getUpgrades() {
+        return upgrades;
     }
 }

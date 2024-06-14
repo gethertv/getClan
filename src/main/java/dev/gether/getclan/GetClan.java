@@ -1,13 +1,17 @@
 package dev.gether.getclan;
 
 import dev.gether.getclan.bstats.Metrics;
-import dev.gether.getclan.cmd.ClanCommand;
-import dev.gether.getclan.cmd.PlayerCommand;
+import dev.gether.getclan.cmd.ClanENCommand;
+import dev.gether.getclan.cmd.ClanPLCommand;
+import dev.gether.getclan.cmd.PlayerENCommand;
+import dev.gether.getclan.cmd.PlayerPLCommand;
 import dev.gether.getclan.cmd.argument.ClanTagArgument;
 import dev.gether.getclan.cmd.argument.OwnerArgument;
 import dev.gether.getclan.cmd.argument.UserArgument;
 import dev.gether.getclan.config.FileManager;
+import dev.gether.getclan.config.domain.LangType;
 import dev.gether.getclan.core.alliance.AllianceManager;
+import dev.gether.getclan.core.upgrade.UpgradeManager;
 import dev.gether.getclan.database.MySQL;
 import dev.gether.getclan.handler.CustomInvalidUsage;
 import dev.gether.getclan.handler.PermissionMessage;
@@ -54,13 +58,11 @@ public final class GetClan extends JavaPlugin {
     private ClanManager clanManager;
     private CooldownManager cooldownManager;
     private AllianceManager allianceManager;
-
+    private UpgradeManager upgradeManager;
     private MySQL mySQL;
     private LiteCommands<CommandSender> liteCommands;
     private ClanPlaceholder clanPlaceholder;
-
     private RankingManager rankingManager;
-
     private FileManager fileManager;
 
     @Override
@@ -87,22 +89,24 @@ public final class GetClan extends JavaPlugin {
             return;
         }
 
+        // IMPORTANT: first, we must implement clans, and then users
+        ClanService clanService = new ClanService(mySQL, fileManager, this);
+        UserService userService = new UserService(mySQL, fileManager);
+        AllianceService allianceService = new AllianceService(mySQL);
+
+        // manager
+        upgradeManager = new UpgradeManager(fileManager);
+        userManager = new UserManager(userService, this, fileManager);
+        clanManager = new ClanManager(this, clanService, allianceService, fileManager);
+        allianceManager = new AllianceManager(this, allianceService, fileManager);
+        cooldownManager = new CooldownManager();
+
+
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
             clanPlaceholder = new ClanPlaceholder(this, fileManager, clanManager);
             clanPlaceholder.register();
             MessageUtil.logMessage(ConsoleColor.GREEN, "Successfully implement the placeholders");
         }
-
-        // IMPORTANT: first, we must implement clans, and then users
-        ClanService clanService = new ClanService(mySQL);
-        UserService userService = new UserService(mySQL);
-        AllianceService allianceService = new AllianceService(mySQL);
-
-        // manager
-        userManager = new UserManager(userService, this, fileManager);
-        clanManager = new ClanManager(this, clanService, allianceService, fileManager);
-        allianceManager = new AllianceManager(this, allianceService, fileManager);
-        cooldownManager = new CooldownManager();
 
         // load data form database
         loadDataMySQL();
@@ -113,7 +117,9 @@ public final class GetClan extends JavaPlugin {
                 new PlayerDeathListener(this, fileManager),
                 new EntityDamageListener(this, fileManager, clanManager),
                 new AsyncPlayerChatListener(this, fileManager, clanManager),
-                new PlayerInteractionEntityListener(fileManager, userManager, cooldownManager)
+                new PlayerInteractionEntityListener(fileManager, userManager, cooldownManager),
+                new InventoryClickListener(clanManager, userManager),
+                new BreakBlockListener(userManager, clanManager, upgradeManager)
         ).forEach(listener -> getServer().getPluginManager().registerEvents(listener, this));
 
 
@@ -121,14 +127,14 @@ public final class GetClan extends JavaPlugin {
         rankingManager = new RankingManager(clanManager);
         Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
             rankingManager.updateAll(userManager.getUserData().values());
-        }, 20L * 5, 20L * 5);
+        }, 0, 20L * 5);
 
         Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
             MessageUtil.logMessage(ConsoleColor.GREEN, "Starting update data to mysql...");
             userManager.updateUsers();
             clanManager.updateClans();
             mySQL.executeQueued();
-        }, 20L * 10, 20L * 10);
+        }, 20L * 300, 20L * 300);
 
 
         // register cmd
@@ -146,6 +152,8 @@ public final class GetClan extends JavaPlugin {
             clanPlaceholder.unregister();
 
         if (mySQL != null) {
+            userManager.updateUsers(); // check users need update
+            clanManager.updateClans(); // check clans need update
             mySQL.executeQueued();
             mySQL.disconnect();
         }
@@ -190,8 +198,12 @@ public final class GetClan extends JavaPlugin {
 
         this.liteCommands = LiteBukkitFactory.builder("getclan")
                 .commands(
-                        new ClanCommand(this, fileManager, clanManager),
-                        new PlayerCommand(this)
+                        fileManager.getConfig().getLangType() == LangType.PL ?
+                                new ClanPLCommand(this, fileManager, clanManager, upgradeManager) :
+                                new ClanENCommand(this, fileManager, clanManager, upgradeManager),
+                        fileManager.getConfig().getLangType() == LangType.PL ?
+                                new PlayerPLCommand(this) :
+                                new PlayerENCommand(this)
                 )
 
                 // contextual bind

@@ -5,13 +5,11 @@ import dev.gether.getclan.config.FileManager;
 import dev.gether.getclan.core.clan.ClanManager;
 import dev.gether.getclan.core.clan.Clan;
 import dev.gether.getclan.core.user.User;
-import io.papermc.paper.event.player.AsyncChatEvent;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 public class AsyncPlayerChatListener implements Listener {
 
@@ -26,14 +24,9 @@ public class AsyncPlayerChatListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
-    public void onSendMessage(AsyncChatEvent event) {
+    public void onSendMessage(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
-        Component messageComponent = event.message();
-        if (!(messageComponent instanceof TextComponent))
-            return;
-
-        TextComponent textMessage = (TextComponent) messageComponent;
-        String message = textMessage.content();
+        String message = event.getMessage();
 
         User user = plugin.getUserManager().getUserData().get(player.getUniqueId());
         if (!user.hasClan())

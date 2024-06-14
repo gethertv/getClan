@@ -2,6 +2,10 @@ package dev.gether.getclan.core.clan;
 
 import dev.gether.getclan.GetClan;
 import dev.gether.getclan.config.FileManager;
+import dev.gether.getclan.core.upgrade.LevelData;
+import dev.gether.getclan.core.upgrade.Upgrade;
+import dev.gether.getclan.core.upgrade.UpgradeCost;
+import dev.gether.getclan.core.upgrade.UpgradeType;
 import dev.gether.getclan.event.*;
 import dev.gether.getclan.core.CostType;
 import dev.gether.getclan.core.user.User;
@@ -10,6 +14,7 @@ import dev.gether.getclan.cmd.context.domain.Member;
 import dev.gether.getclan.cmd.context.domain.Owner;
 import dev.gether.getclan.core.alliance.AllianceService;
 import dev.gether.getclan.core.user.UserManager;
+import dev.gether.getclan.incognito.IncognitoAddon;
 import dev.gether.getconfig.utils.ColorFixer;
 import dev.gether.getconfig.utils.ConsoleColor;
 import dev.gether.getconfig.utils.ItemUtil;
@@ -19,6 +24,11 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -29,12 +39,14 @@ public class ClanManager {
     private final AllianceService allianceService;
     private final HashMap<String, Clan> clansData = new HashMap<>();
     private final FileManager fileManager;
+    private final IncognitoAddon incognitoAddon;
 
     public ClanManager(GetClan plugin, ClanService clanService, AllianceService allianceService, FileManager fileManager) {
         this.plugin = plugin;
         this.clanService = clanService;
         this.allianceService = allianceService;
         this.fileManager = fileManager;
+        this.incognitoAddon = new IncognitoAddon();
     }
 
     public void setOwner(Owner owner, Player target) {
@@ -135,13 +147,21 @@ public class ClanManager {
 
             );
             MessageUtil.sendMessage(target,
-                    fileManager.getLangConfig().getMessage("clan-invitation-received")
+                    fileManager.getLangConfig().getMessage("player-has-no-clan")
                             .replace("{tag}", clan.getTag())
 
             );
         }
     }
 
+    public void openMenu(Player player, User user) {
+        if(!user.hasClan()) {
+            MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("player-has-no-clan"));
+            return;
+        }
+        Clan clan = getClan(user.getTag());
+        player.openInventory(clan.getInventory());
+    }
     private boolean hasClan(Player target) {
         User user = plugin.getUserManager().getUserData().get(target.getUniqueId());
         return user.hasClan();
@@ -152,7 +172,20 @@ public class ClanManager {
     }
 
     private boolean isLimitMember(Clan clan) {
-        return clan.getMembers().size() >= getMaxMember(clan);
+        LevelData levelData = clan.getUpgrades().get(UpgradeType.MEMBERS);
+        if(levelData == null)
+            return true;
+
+        Optional<Upgrade> upgradeByType = fileManager.getUpgradesConfig().findUpgradeByType(UpgradeType.MEMBERS);
+        if(upgradeByType.isEmpty())
+            return true;
+
+        Upgrade upgrade = upgradeByType.get();
+        UpgradeCost upgradeCost = upgrade.getUpgradesCost().get(levelData.getLevel());
+        if(upgradeCost == null)
+            return true;
+
+        return upgradeCost.getBoostValue() >= clan.getMembers().size();
     }
 
 
@@ -188,7 +221,7 @@ public class ClanManager {
         infoMessage = infoMessage.replace("{tag}", clan.getTag())
                 .replace("{owner}", getPlayerName(clan.getOwnerUUID()))
                 .replace("{deputy-owner}", getPlayerName(clan.getDeputyOwnerUUID()))
-                .replace("{points}", getAveragePoint(clan))
+                .replace("{points}", getAveragePoint(player))
                 .replace("{members-online}", String.valueOf(countOnlineMember(clan)))
                 .replace("{members-size}", String.valueOf(clan.getMembers().size()))
                 .replace("{rank}", String.valueOf(index))
@@ -203,9 +236,11 @@ public class ClanManager {
         return members.stream()
                 .map(uuid -> {
                     OfflinePlayer player = Bukkit.getOfflinePlayer(uuid);
-                    String color = player.isOnline() ?
-                            fileManager.getConfig().getColorOnlinePlayer() :
-                            fileManager.getConfig().getColorOfflinePlayer();
+                    boolean incognito = incognitoAddon.isIncognito(player.getUniqueId());
+                    String color = fileManager.getConfig().getColorOfflinePlayer();
+                    if(player.isOnline() && !incognito) {
+                        color = fileManager.getConfig().getColorOnlinePlayer();
+                    }
                     return color + player.getName();
                 })
                 .collect(Collectors.joining(", "));
@@ -215,6 +250,9 @@ public class ClanManager {
     public int countOnlineMember(Clan clan) {
         int online = 0;
         for (UUID uuid : clan.getMembers()) {
+            if(incognitoAddon.isIncognito(uuid))
+                continue;
+
             Player player = Bukkit.getPlayer(uuid);
             if (player != null)
                 online++;
@@ -402,7 +440,9 @@ public class ClanManager {
         CreateClanEvent event = new CreateClanEvent(player, tag);
         Bukkit.getPluginManager().callEvent(event);
         if (!event.isCancelled()) {
-            Clan clan = new Clan(tag, UUID.randomUUID(),  player.getUniqueId(), fileManager.getConfig().isPvpClan());
+            Clan clan = new Clan(tag, UUID.randomUUID(),  player.getUniqueId(), fileManager.getConfig().isPvpClan(), fileManager.getUpgradesConfig());
+            plugin.getClanManager().updateItem(clan);
+
             clansData.put(tag, clan);
             user.setTag(clan.getTag());
             plugin.getUserManager().update(user);
@@ -415,6 +455,26 @@ public class ClanManager {
             );
 
         }
+
+    }
+    public void updateItem(Clan clan) {
+        fileManager.getUpgradesConfig().getUpgrades().forEach(upgrade -> {
+            LevelData levelData = clan.getUpgrades().get(upgrade.getUpgradeType());
+            if(levelData==null)
+                return;
+
+            UpgradeCost upgradeCost = upgrade.getUpgradesCost().get(levelData.getLevel());
+            if(upgradeCost==null)
+                return;
+
+            double needAmount = 0;
+            UpgradeCost nextLevel = upgrade.getUpgradesCost().get(levelData.getLevel() + 1);
+            if(nextLevel != null) {
+                needAmount = nextLevel.getCost();
+            }
+
+            plugin.getClanManager().updateItem(clan, upgradeCost, levelData, needAmount, upgrade.getSlot());
+        });
 
     }
 
@@ -496,7 +556,7 @@ public class ClanManager {
     }
 
     private Optional<UUID> getPlayerUUIDByNickname(String nickname) {
-        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayerIfCached(nickname);
+        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(nickname);
         if (offlinePlayer != null) {
             return Optional.of(offlinePlayer.getUniqueId());
         }
@@ -619,4 +679,105 @@ public class ClanManager {
         Set<Clan> clans = clanService.loadClans();
         clans.forEach(clan -> clansData.put(clan.getTag(), clan));
     }
+
+    public void clickInv(Player player, Clan clan, int slot, @NotNull ClickType clickType) {
+        Optional<Upgrade> upgradeTypeBySlot = fileManager.getUpgradesConfig().findUpgradeTypeBySlot(slot);
+        if(upgradeTypeBySlot.isEmpty())
+            return;
+
+        Upgrade upgrade = upgradeTypeBySlot.get();
+
+        LevelData levelData = clan.getUpgrades().get(upgrade.getUpgradeType());
+        if(levelData==null)
+            return;
+
+        UpgradeCost upgradeCost = upgrade.getUpgradesCost().get(levelData.getLevel() + 1);
+        if(upgradeCost == null) {
+            MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("upgrade-max-level"));
+            return;
+        }
+
+        double need = upgradeCost.getCost() - levelData.getDepositAmount();
+        boolean update = false;
+        if(clickType == ClickType.LEFT) {
+            update = deposit(player, levelData, upgradeCost, need > 1 ? 1 : need, upgradeCost.getCostType());
+        } else if(clickType == ClickType.SHIFT_LEFT) {
+            update = deposit(player, levelData, upgradeCost, need, upgradeCost.getCostType());
+        }
+
+        if(update)
+            clan.setUpdate(true);
+
+        if(nextLevel(upgradeCost, levelData)) {
+            levelData.nextLevel();
+            updateItem(clan, upgradeCost, levelData, upgradeCost.getCost(), upgrade.getSlot());
+            MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("upgrade-successful-upgrade"));
+
+        } else {
+            UpgradeCost actuallyItem = upgrade.getUpgradesCost().get(levelData.getLevel());
+            updateItem(clan, actuallyItem, levelData, upgradeCost.getCost(), upgrade.getSlot());
+        }
+
+    }
+    private boolean nextLevel(UpgradeCost upgradeCost, LevelData levelData) {
+        return upgradeCost.getCost() <= levelData.getDepositAmount();
+    }
+
+    private void updateItem(Clan clan, UpgradeCost upgradeCost, LevelData levelData, double needAmount, int slot) {
+        Inventory inventory = clan.getInventory();
+        ItemStack itemStack = upgradeCost.getItem().getItemStack();
+        ItemMeta itemMeta = itemStack.getItemMeta();
+        List<String> lore = new ArrayList<>();
+        if(itemMeta.hasLore())
+            lore.addAll(itemMeta.getLore());
+
+        for (int i = 0; i < lore.size(); i++) {
+            lore.set(i, lore.get(i)
+                    .replace("{amount}", getFormattedNumber(levelData.getDepositAmount()))
+                    .replace("{need-amount}", getFormattedNumber(needAmount))
+            );
+        }
+        itemMeta.setLore(ColorFixer.addColors(lore));
+        itemStack.setItemMeta(itemMeta);
+        inventory.setItem(slot, itemStack);
+    }
+
+    private String getFormattedNumber(double number) {
+        String formattedNumber;
+        if (number % 1 == 0) {
+            formattedNumber = String.format("%.0f", number);
+        } else {
+            formattedNumber = String.format("%.2f", number);
+        }
+        return formattedNumber;
+    }
+
+    private boolean deposit(Player player, LevelData levelData, UpgradeCost upgradeCost, double amount, CostType costType) {
+        if (costType == CostType.VAULT) {
+            Economy economy = plugin.getEconomy();
+            if (!economy.has(player, amount)) {
+                MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("upgrade-cost-vault")
+                        .replace("{cost}", String.valueOf(amount)));
+                return false;
+            }
+            economy.withdrawPlayer(player, amount);
+            levelData.deposit(amount);
+            return true;
+        } else {
+            int calcAmount = ItemUtil.calcItem(player, upgradeCost.getItemStack());
+            int needAmount = (int) amount;
+            if (calcAmount < needAmount) {
+                MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("upgrade-cost-item")
+                        .replace("{amount}", String.valueOf(needAmount))
+                        .replace("{item}", ItemUtil.getItemName(upgradeCost.getItemStack()))
+                );
+                return false;
+            }
+            ItemUtil.removeItem(player, upgradeCost.getItemStack(), needAmount);
+            levelData.deposit(amount);
+            return true;
+        }
+    }
+
+
 }

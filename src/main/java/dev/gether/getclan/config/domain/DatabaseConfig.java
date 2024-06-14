@@ -1,5 +1,6 @@
 package dev.gether.getclan.config.domain;
 
+import dev.gether.getclan.database.DatabaseType;
 import dev.gether.getconfig.GetConfig;
 import dev.gether.getconfig.annotation.Comment;
 import lombok.AllArgsConstructor;
@@ -14,6 +15,8 @@ import lombok.Setter;
 @NoArgsConstructor
 public class DatabaseConfig extends GetConfig {
 
+    @Comment("MYSQL, SQLITE")
+    private DatabaseType databaseType = DatabaseType.SQLITE;
     @Comment("Host serwera MySQL")
     private String host = "localhost";
 

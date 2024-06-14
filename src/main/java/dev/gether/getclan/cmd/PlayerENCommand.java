@@ -10,18 +10,18 @@ import dev.rollczi.litecommands.annotations.permission.Permission;
 import org.bukkit.entity.Player;
 
 
-@Command(name = "getgracz", aliases = "gracz")
+@Command(name = "getplayer", aliases = "player")
 @Permission("getclan.use")
-public class PlayerCommand {
+public class PlayerENCommand {
 
     private final GetClan plugin;
 
-    public PlayerCommand(GetClan plugin) {
+    public PlayerENCommand(GetClan plugin) {
         this.plugin = plugin;
     }
 
     @Execute()
-    public void infoClan(@Context Player player, @Arg("gracz") User user) {
+    public void infoClan(@Context Player player, @Arg("user") User user) {
         plugin.getUserManager().infoPlayer(player, user);
     }
 }

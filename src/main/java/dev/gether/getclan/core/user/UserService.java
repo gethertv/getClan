@@ -1,5 +1,7 @@
 package dev.gether.getclan.core.user;
 
+import dev.gether.getclan.config.FileManager;
+import dev.gether.getclan.database.DatabaseType;
 import dev.gether.getclan.database.GetTable;
 import dev.gether.getclan.database.MySQL;
 import dev.gether.getclan.database.QueuedQuery;
@@ -16,15 +18,20 @@ public class UserService implements GetTable {
     private final String table = "get_clan_users";
     private final MySQL mySQL;
 
-    public UserService(MySQL mySQL) {
+    private final FileManager fileManager;
+
+    public UserService(MySQL mySQL, FileManager fileManager) {
         this.mySQL = mySQL;
+        this.fileManager = fileManager;
         createTable();
     }
 
     @Override
     public void createTable() {
         String query = "CREATE TABLE IF NOT EXISTS " + table + " ("
-                + "id INT(10) AUTO_INCREMENT PRIMARY KEY,"
+                + "id " + (this.fileManager.getDatabaseConfig().getDatabaseType() == DatabaseType.SQLITE
+                ? "INTEGER PRIMARY KEY AUTOINCREMENT"
+                : "INT(10) AUTO_INCREMENT PRIMARY KEY") + ","
                 + "uuid VARCHAR(100),"
                 + "username VARCHAR(100),"
                 + "kills INT(11) DEFAULT 0,"

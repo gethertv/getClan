@@ -3,6 +3,7 @@ package dev.gether.getclan.cmd;
 import dev.gether.getclan.GetClan;
 import dev.gether.getclan.config.FileManager;
 import dev.gether.getclan.core.clan.ClanManager;
+import dev.gether.getclan.core.upgrade.*;
 import dev.gether.getclan.core.user.UserManager;
 import dev.gether.getclan.core.clan.Clan;
 import dev.gether.getclan.core.user.User;
@@ -10,6 +11,7 @@ import dev.gether.getclan.cmd.context.domain.DeputyOwner;
 import dev.gether.getclan.cmd.context.domain.Member;
 import dev.gether.getclan.cmd.context.domain.Owner;
 import dev.gether.getconfig.utils.MessageUtil;
+import dev.gether.getconfig.utils.PlayerUtil;
 import dev.rollczi.litecommands.annotations.argument.Arg;
 import dev.rollczi.litecommands.annotations.command.Command;
 import dev.rollczi.litecommands.annotations.context.Context;
@@ -20,22 +22,26 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Command(name = "name", aliases = "aliases")
-@Permission("default-permission")
-public class ClanCommand {
+@Command(name = "getclan", aliases = "clan")
+@Permission("getclan.use")
+public class ClanENCommand {
 
     private final GetClan plugin;
     private final FileManager fileManager;
     private final ClanManager clanManager;
+    private final UpgradeManager upgradeManager;
+
     private final Pattern pattern = Pattern.compile("^[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ0-9]+$");
 
-    public ClanCommand(GetClan plugin, FileManager fileManager, ClanManager clanManager) {
+    public ClanENCommand(GetClan plugin, FileManager fileManager, ClanManager clanManager, UpgradeManager upgradeManager) {
         this.plugin = plugin;
         this.fileManager = fileManager;
         this.clanManager = clanManager;
+        this.upgradeManager = upgradeManager;
     }
 
     private boolean isPlayer(CommandSender sender) {
@@ -132,6 +138,34 @@ public class ClanCommand {
         plugin.getClanManager().changePvpStatus(deputyOwner);
     }
 
+    @Execute(name = "upgrade")
+    public void upgradePanel(@Context Player player) {
+
+        Optional<User> userByPlayer = plugin.getUserManager().findUserByPlayer(player);
+        if(userByPlayer.isEmpty())
+            return;
+
+        clanManager.openMenu(player, userByPlayer.get());
+    }
+
+
+    @Execute(name = "admin setitem")
+    @Permission("getclan.admin")
+    public void adminUpgradeItem(@Context Player player, @Arg("upgrade-type") UpgradeType upgradeType, @Arg("level") int level) {
+        Optional<UpgradeCost> upgradeCostOpt = upgradeManager.findUpgradeCost(upgradeType, level);
+        if(upgradeCostOpt.isEmpty()) {
+            MessageUtil.sendMessage(player, "&cCannot find the upgrade type with this level!");
+            return;
+        }
+
+        ItemStack itemStack = getItemStack(player);
+        if(itemStack == null) return;
+
+        UpgradeCost upgradeCost = upgradeCostOpt.get();
+        upgradeCost.setItemStack(itemStack);
+        upgradeManager.save();
+        MessageUtil.sendMessage(player, "&aSuccessful set the new item!");
+    }
 
     @Execute(name = "admin setleader")
     @Permission("getclan.admin")
@@ -167,6 +201,14 @@ public class ClanCommand {
         MessageUtil.sendMessage(sender, "&aDeaths reset successfully!");
     }
 
+    @Execute(name = "admin clan reset")
+    @Permission("getclan.admin")
+    public void adminClanReset(@Context CommandSender sender, @Arg("tag") Clan clan) {
+        clan.getUpgrades().values().forEach(upgrade -> upgrade.reset());
+        clanManager.updateItem(clan);
+        MessageUtil.sendMessage(sender, "&aSuccessful reset upgrades of clan");
+    }
+
     @Execute(name = "admin debug")
     @Permission("getclan.admin")
     public void adminDebug(@Context CommandSender sender, @Arg("player") Player target) {
@@ -185,17 +227,49 @@ public class ClanCommand {
     @Execute(name = "admin setitem")
     @Permission("getclan.admin")
     public void setItemCost(@Context Player player) {
+        ItemStack itemStack = getItemStack(player);
+        if(itemStack == null)
+            return;
+
+        fileManager.getConfig().setItemCost(itemStack);
+        fileManager.getConfig().save();
+        MessageUtil.sendMessage(player, "&aItem set successfully!");
+    }
+
+    @Execute(name = "admin give")
+    @Permission("getclan.admin")
+    public void giveLevelItem(@Context CommandSender sender, @Arg("upgrade-type") UpgradeType upgradeType, @Arg("player") Player target,  @Arg("level") int level, @Arg("amount") int amount) {
+        Optional<UpgradeCost> upgradeCostOpt = upgradeManager.findUpgradeCost(upgradeType, level);
+        if(upgradeCostOpt.isEmpty()) {
+            MessageUtil.sendMessage(sender, "&cCannot find the upgrade type with this level!");
+            return;
+        }
+
+        UpgradeCost upgradeCost = upgradeCostOpt.get();
+        ItemStack item = upgradeCost.getItemStack().clone();
+        item.setAmount(amount);
+        PlayerUtil.giveItem(target, item);
+        MessageUtil.sendMessage(sender, "&aSuccessful give item!");
+    }
+
+    @Execute(name = "admin give default")
+    @Permission("getclan.admin")
+    public void giveDefaultItem(@Context CommandSender sender, @Arg("player") Player target, @Arg("amount") int amount) {
+        ItemStack item = fileManager.getConfig().getItemCost().clone();
+        item.setAmount(amount);
+        PlayerUtil.giveItem(target, item);
+        MessageUtil.sendMessage(sender, "&aSuccessful give item!");
+    }
+
+    private ItemStack getItemStack(Player player) {
         ItemStack itemInMainHand = player.getInventory().getItemInMainHand();
         if(itemInMainHand.getType()== Material.AIR) {
             MessageUtil.sendMessage(player, "&cYou need to hold the item in your hand!");
-            return;
+            return null;
         }
         ItemStack itemClone = itemInMainHand.clone();
         itemClone.setAmount(1);
-
-        fileManager.getConfig().setItemCost(itemClone);
-        fileManager.getConfig().save();
-        MessageUtil.sendMessage(player, "&aItem set successfully!");
+        return itemClone;
     }
     @Execute(name = "admin delete clan")
     @Permission("getclan.admin")
@@ -204,10 +278,32 @@ public class ClanCommand {
         MessageUtil.sendMessage(sender, "&aClan successfully removed!");
     }
 
-    @Execute(name = "admin setpoints")
+    @Execute(name = "admin set points")
     @Permission("getclan.admin")
     public void adminSetPoint(@Context CommandSender sender, @Arg("player") User user, @Arg("points") int points) {
         user.setPoints(points);
         MessageUtil.sendMessage(sender, "New points set successfully!");
+    }
+
+    @Execute(name = "admin set upgrade")
+    @Permission("getclan.admin")
+    public void adminSetUpgrade(@Context CommandSender sender, @Arg("tag") Clan clan, @Arg("type") UpgradeType upgradeType, @Arg("level") int level) {
+        Optional<Upgrade> upgradeByType = fileManager.getUpgradesConfig().findUpgradeByType(upgradeType);
+        if(upgradeByType.isEmpty()) {
+            MessageUtil.sendMessage(sender, "&cThis upgrade is not exists!");
+            return;
+        }
+        Upgrade upgrade = upgradeByType.get();
+        UpgradeCost upgradeCost = upgrade.getUpgradesCost().get(level);
+        if(upgradeCost == null) {
+            MessageUtil.sendMessage(sender, "&cThat level of this upgrade not exists!");
+            return;
+        }
+
+        LevelData levelData = clan.getUpgrades().get(upgradeType);
+        levelData.reset();
+        levelData.setLevel(level);
+        clan.setUpdate(true);
+        MessageUtil.sendMessage(sender, "&aSuccessfully set the upgrade level for this clan!");
     }
 }

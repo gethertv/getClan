@@ -7,6 +7,7 @@ import dev.gether.getclan.config.FileManager;
 import dev.gether.getclan.config.domain.DatabaseConfig;
 import dev.gether.getconfig.utils.ConsoleColor;
 import dev.gether.getconfig.utils.MessageUtil;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -27,15 +28,19 @@ public class MySQL {
     public MySQL(GetClan plugin, FileManager fileManager) {
         this.plugin = plugin;
         this.fileManager = fileManager;
-        connect();
+        connect(plugin);
     }
 
-    private void connect() {
+    private void connect(JavaPlugin plugin) {
         DatabaseConfig databaseConfig = fileManager.getDatabaseConfig();
         HikariConfig config = new HikariConfig();
-        config.setJdbcUrl("jdbc:mysql://" + databaseConfig.getHost() + ":" + databaseConfig.getPort() + "/" + databaseConfig.getDatabase());
-        config.setUsername(databaseConfig.getUsername());
-        config.setPassword(databaseConfig.getPassword());
+        if(databaseConfig.getDatabaseType() == DatabaseType.MYSQL) {
+            config.setJdbcUrl("jdbc:mysql://" + databaseConfig.getHost() + ":" + databaseConfig.getPort() + "/" + databaseConfig.getDatabase());
+            config.setUsername(databaseConfig.getUsername());
+            config.setPassword(databaseConfig.getPassword());
+        } else {
+            config.setJdbcUrl("jdbc:sqlite:"+plugin.getDataFolder() + "/database.db");
+        }
         config.addDataSourceProperty("cachePrepStmts", "true");
         config.addDataSourceProperty("prepStmtCacheSize", "250");
         config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
@@ -105,4 +110,5 @@ public class MySQL {
     public void addQueue(QueuedQuery queuedQuery) {
         queuedQueries.add(queuedQuery);
     }
+
 }
