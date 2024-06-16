@@ -24,6 +24,10 @@ import java.util.*;
 @NoArgsConstructor
 public class UpgradesConfig extends GetConfig {
 
+    private List<Material> whitelistMaterial = new ArrayList<>(List.of(
+            Material.STONE,
+            Material.DIAMOND_ORE
+    ));
     private InventoryBase inventoryBase = InventoryBase.builder()
             .title("&8&lᴜʟᴇᴘꜱᴢᴇɴɪᴀ ᴋʟᴀɴᴜ")
             .size(45)
@@ -62,12 +66,14 @@ public class UpgradesConfig extends GetConfig {
                                                     .itemStack(ItemBuilder.create(Material.BOOK, "", true))
                                                     .item(Item.builder()
                                                             .material(Material.DIAMOND_PICKAXE)
-                                                            .displayname("&8⬛ #ffd573ᴘᴏᴢɪᴏᴍ 1")
+                                                            .displayname("&8⬛ #ffd573ᴘᴏᴢɪᴏᴍ 0")
                                                             .lore(new ArrayList<>(
                                                                     List.of(
                                                                             "",
+                                                                            "&7Aktualny bonus: &f0%",
+                                                                            "",
                                                                             "&7Co otrzymasz&8:",
-                                                                            "&8→ &7Zwiększony drop &eX0.5",
+                                                                            "&8→ &7Zwiększony drop o &e50%",
                                                                             "&7",
                                                                             "&7Aby awansować na kolejny poziom&8:",
                                                                             "&8→ &f{amount}&8/&7{need-amount}",
@@ -82,12 +88,14 @@ public class UpgradesConfig extends GetConfig {
                                                     .itemStack(ItemBuilder.create(Material.BOOK, "XYZ", true))
                                                     .item(Item.builder()
                                                             .material(Material.DIAMOND_PICKAXE)
-                                                            .displayname("&8⬛ #ffd573ᴘᴏᴢɪᴏᴍ 2")
+                                                            .displayname("&8⬛ #ffd573ᴘᴏᴢɪᴏᴍ 1")
                                                             .lore(new ArrayList<>(
                                                                     List.of(
                                                                             "",
+                                                                            "&7Aktualny bonus: &f50%",
+                                                                            "",
                                                                             "&7Co otrzymasz&8:",
-                                                                            "&8→ &7Zwiększony drop &eX1.0",
+                                                                            "&8→ &7Zwiększony drop o &e100%",
                                                                             "&7",
                                                                             "&7Aby awansować na kolejny poziom&8:",
                                                                             "&8→ &f{amount}&8/&7{need-amount}",
@@ -108,8 +116,10 @@ public class UpgradesConfig extends GetConfig {
                                                             .lore(new ArrayList<>(
                                                                     List.of(
                                                                             "",
+                                                                            "&7Aktualny bonus: &f100%",
+                                                                            "",
                                                                             "&7Co otrzymasz&8:",
-                                                                            "&8→ &7Zwiększony drop &eX1.5",
+                                                                            "&8→ &7Zwiększony drop o &e150%",
                                                                             "&7",
                                                                             "&7Aby awansować na kolejny poziom&8:",
                                                                             "&8→ &f{amount}&8/&7{need-amount}",
@@ -118,7 +128,7 @@ public class UpgradesConfig extends GetConfig {
                                                             ))
                                                             .glow(false)
                                                             .build())
-                                                    .cost(10)
+                                                    .cost(20)
                                                     .costType(CostType.ITEM)
                                                     .build(),
                                             3, UpgradeCost.builder()
@@ -130,8 +140,10 @@ public class UpgradesConfig extends GetConfig {
                                                             .lore(new ArrayList<>(
                                                                     List.of(
                                                                             "",
+                                                                            "&7Aktualny bonus: &f150%",
+                                                                            "",
                                                                             "&7Co otrzymasz&8:",
-                                                                            "&8→ &7Zwiększony drop &eX2.0",
+                                                                            "&8→ &7Zwiększony drop o &e200%",
                                                                             "&7",
                                                                             "&7Aby awansować na kolejny poziom&8:",
                                                                             "&8→ &f{amount}&8/&7{need-amount}",
@@ -140,7 +152,7 @@ public class UpgradesConfig extends GetConfig {
                                                             ))
                                                             .glow(false)
                                                             .build())
-                                                    .cost(10)
+                                                    .cost(30)
                                                     .costType(CostType.ITEM)
                                                     .build(),
                                             4, UpgradeCost.builder()
@@ -152,8 +164,10 @@ public class UpgradesConfig extends GetConfig {
                                                             .lore(new ArrayList<>(
                                                                     List.of(
                                                                             "",
+                                                                            "&7Aktualny bonus: &f200%",
+                                                                            "",
                                                                             "&7Co otrzymasz&8:",
-                                                                            "&8→ &7Zwiększony drop &eX2.5",
+                                                                            "&8→ &7Zwiększony drop o &e250%",
                                                                             "&7",
                                                                             "&7Aby awansować na kolejny poziom&8:",
                                                                             "&8→ &f{amount}&8/&7{need-amount}",
@@ -162,7 +176,7 @@ public class UpgradesConfig extends GetConfig {
                                                             ))
                                                             .glow(false)
                                                             .build())
-                                                    .cost(10)
+                                                    .cost(40)
                                                     .costType(CostType.ITEM)
                                                     .build(),
                                             5, UpgradeCost.builder()
@@ -174,8 +188,10 @@ public class UpgradesConfig extends GetConfig {
                                                             .lore(new ArrayList<>(
                                                                     List.of(
                                                                             "",
+                                                                            "&7Aktualny bonus: &f250%",
+                                                                            "",
                                                                             "&7Co otrzymasz&8:",
-                                                                            "&8→ &7Zwiększony drop &eX3.0",
+                                                                            "&8→ &7Zwiększony drop o &e300%",
                                                                             "&7",
                                                                             "&7Aby awansować na kolejny poziom&8:",
                                                                             "&8→ &f{amount}&8/&7{need-amount}",
@@ -184,11 +200,11 @@ public class UpgradesConfig extends GetConfig {
                                                             ))
                                                             .glow(false)
                                                             .build())
-                                                    .cost(10)
+                                                    .cost(50)
                                                     .costType(CostType.ITEM)
                                                     .build(),
                                             6, UpgradeCost.builder()
-                                                    .boostValue(1.0)
+                                                    .boostValue(3.0)
                                                     .itemStack(ItemBuilder.create(Material.BOOK, "XYZ", true))
                                                     .item(Item.builder()
                                                             .material(Material.DIAMOND_PICKAXE)
@@ -197,13 +213,13 @@ public class UpgradesConfig extends GetConfig {
                                                                     List.of(
                                                                             "",
                                                                             "&7Aktualna wartość ulepszenia&8:",
-                                                                            "&8→ &7Zwiększony drop &eX3",
+                                                                            "&8→ &7Zwiększony drop o &e300%",
                                                                             "&7"
                                                                     )
                                                             ))
                                                             .glow(false)
                                                             .build())
-                                                    .cost(20)
+                                                    .cost(60)
                                                     .costType(CostType.ITEM)
                                                     .build())
 
@@ -217,12 +233,14 @@ public class UpgradesConfig extends GetConfig {
                                                     .itemStack(ItemBuilder.create(Material.BOOK, "", true))
                                                     .item(Item.builder()
                                                             .material(Material.PLAYER_HEAD)
-                                                            .displayname("&8⬛ #ffd573ᴘᴏᴢɪᴏᴍ 1")
+                                                            .displayname("&8⬛ #ffd573ᴘᴏᴢɪᴏᴍ 0")
                                                             .lore(new ArrayList<>(
                                                                     List.of(
                                                                             "",
+                                                                            "&7Aktualna ilość: &f6",
+                                                                            "",
                                                                             "&7Co otrzymasz&8:",
-                                                                            "&8→ &7Ilość członków&8: &e+1",
+                                                                            "&8→ &7Ilość członków&8: &e8",
                                                                             "&7",
                                                                             "&7Aby awansować na kolejny poziom&8:",
                                                                             "&8→ &f{amount}&8/&7{need-amount}",
@@ -231,18 +249,21 @@ public class UpgradesConfig extends GetConfig {
                                                             ))
                                                             .glow(false)
                                                             .build())
+                                                    .boostValue(6)
                                                     .build(),
                                             1, UpgradeCost.builder()
-                                                    .boostValue(1.0)
+                                                    .boostValue(8)
                                                     .itemStack(ItemBuilder.create(Material.BOOK, "XYZ", true))
                                                     .item(Item.builder()
                                                             .material(Material.PLAYER_HEAD)
-                                                            .displayname("&8⬛ #ffd573ᴘᴏᴢɪᴏᴍ 2")
+                                                            .displayname("&8⬛ #ffd573ᴘᴏᴢɪᴏᴍ 1")
                                                             .lore(new ArrayList<>(
                                                                     List.of(
                                                                             "",
+                                                                            "&7Aktualna ilość: &f8",
+                                                                            "",
                                                                             "&7Co otrzymasz&8:",
-                                                                            "&8→ &7Ilość członków&8: &e+1",
+                                                                            "&8→ &7Ilość członków&8: &e10",
                                                                             "&7",
                                                                             "&7Aby awansować na kolejny poziom&8:",
                                                                             "&8→ &f{amount}&8/&7{need-amount}",
@@ -255,7 +276,31 @@ public class UpgradesConfig extends GetConfig {
                                                     .costType(CostType.ITEM)
                                                     .build(),
                                             2, UpgradeCost.builder()
-                                                    .boostValue(2.0)
+                                                    .boostValue(10)
+                                                    .itemStack(ItemBuilder.create(Material.BOOK, "XYZ", true))
+                                                    .item(Item.builder()
+                                                            .material(Material.PLAYER_HEAD)
+                                                            .displayname("&8⬛ #ffd573ᴘᴏᴢɪᴏᴍ 2")
+                                                            .lore(new ArrayList<>(
+                                                                    List.of(
+                                                                            "",
+                                                                            "&7Aktualna ilość: &f10",
+                                                                            "",
+                                                                            "&7Co otrzymasz&8:",
+                                                                            "&8→ &7Ilość członków&8: &e12",
+                                                                            "&7",
+                                                                            "&7Aby awansować na kolejny poziom&8:",
+                                                                            "&8→ &f{amount}&8/&7{need-amount}",
+                                                                            "&7"
+                                                                    )
+                                                            ))
+                                                            .glow(false)
+                                                            .build())
+                                                    .cost(20)
+                                                    .costType(CostType.ITEM)
+                                                    .build(),
+                                            3, UpgradeCost.builder()
+                                                    .boostValue(12)
                                                     .itemStack(ItemBuilder.create(Material.BOOK, "XYZ", true))
                                                     .item(Item.builder()
                                                             .material(Material.PLAYER_HEAD)
@@ -263,8 +308,10 @@ public class UpgradesConfig extends GetConfig {
                                                             .lore(new ArrayList<>(
                                                                     List.of(
                                                                             "",
+                                                                            "&7Aktualna ilość: &f12",
+                                                                            "",
                                                                             "&7Co otrzymasz&8:",
-                                                                            "&8→ &7Ilość członków&8: &e+3",
+                                                                            "&8→ &7Ilość członków&8: &e14",
                                                                             "&7",
                                                                             "&7Aby awansować na kolejny poziom&8:",
                                                                             "&8→ &f{amount}&8/&7{need-amount}",
@@ -273,11 +320,11 @@ public class UpgradesConfig extends GetConfig {
                                                             ))
                                                             .glow(false)
                                                             .build())
-                                                    .cost(10)
+                                                    .cost(30)
                                                     .costType(CostType.ITEM)
                                                     .build(),
-                                            3, UpgradeCost.builder()
-                                                    .boostValue(3.0)
+                                            4, UpgradeCost.builder()
+                                                    .boostValue(14)
                                                     .itemStack(ItemBuilder.create(Material.BOOK, "XYZ", true))
                                                     .item(Item.builder()
                                                             .material(Material.PLAYER_HEAD)
@@ -285,8 +332,10 @@ public class UpgradesConfig extends GetConfig {
                                                             .lore(new ArrayList<>(
                                                                     List.of(
                                                                             "",
+                                                                            "&7Aktualna ilość: &f14",
+                                                                            "",
                                                                             "&7Co otrzymasz&8:",
-                                                                            "&8→ &7Ilość członków&8: &e+4",
+                                                                            "&8→ &7Ilość członków&8: &e16",
                                                                             "&7",
                                                                             "&7Aby awansować na kolejny poziom&8:",
                                                                             "&8→ &f{amount}&8/&7{need-amount}",
@@ -295,11 +344,11 @@ public class UpgradesConfig extends GetConfig {
                                                             ))
                                                             .glow(false)
                                                             .build())
-                                                    .cost(10)
+                                                    .cost(40)
                                                     .costType(CostType.ITEM)
                                                     .build(),
-                                            4, UpgradeCost.builder()
-                                                    .boostValue(4.0)
+                                            5, UpgradeCost.builder()
+                                                    .boostValue(16)
                                                     .itemStack(ItemBuilder.create(Material.BOOK, "XYZ", true))
                                                     .item(Item.builder()
                                                             .material(Material.PLAYER_HEAD)
@@ -307,30 +356,10 @@ public class UpgradesConfig extends GetConfig {
                                                             .lore(new ArrayList<>(
                                                                     List.of(
                                                                             "",
-                                                                            "&7Co otrzymasz&8:",
-                                                                            "&8→ &7Ilość członków&8: &e+5",
-                                                                            "&7",
-                                                                            "&7Aby awansować na kolejny poziom&8:",
-                                                                            "&8→ &f{amount}&8/&7{need-amount}",
-                                                                            "&7"
-                                                                    )
-                                                            ))
-                                                            .glow(false)
-                                                            .build())
-                                                    .cost(10)
-                                                    .costType(CostType.ITEM)
-                                                    .build(),
-                                            5, UpgradeCost.builder()
-                                                    .boostValue(5.0)
-                                                    .itemStack(ItemBuilder.create(Material.BOOK, "XYZ", true))
-                                                    .item(Item.builder()
-                                                            .material(Material.PLAYER_HEAD)
-                                                            .displayname("&8⬛ #ffd573ᴘᴏᴢɪᴏᴍ 6")
-                                                            .lore(new ArrayList<>(
-                                                                    List.of(
+                                                                            "&7Aktualna ilość: &f16",
                                                                             "",
                                                                             "&7Co otrzymasz&8:",
-                                                                            "&8→ &7Ilość członków&8: &e+6",
+                                                                            "&8→ &7Ilość członków&8: &e18",
                                                                             "&7",
                                                                             "&7Aby awansować na kolejny poziom&8:",
                                                                             "&8→ &f{amount}&8/&7{need-amount}",
@@ -339,11 +368,11 @@ public class UpgradesConfig extends GetConfig {
                                                             ))
                                                             .glow(false)
                                                             .build())
-                                                    .cost(10)
+                                                    .cost(50)
                                                     .costType(CostType.ITEM)
                                                     .build(),
                                             6, UpgradeCost.builder()
-                                                    .boostValue(6.0)
+                                                    .boostValue(18)
                                                     .itemStack(ItemBuilder.create(Material.BOOK, "XYZ", true))
                                                     .item(Item.builder()
                                                             .material(Material.PLAYER_HEAD)
@@ -352,13 +381,13 @@ public class UpgradesConfig extends GetConfig {
                                                                     List.of(
                                                                             "",
                                                                             "&7Aktualna wartość ulepszenia&8:",
-                                                                            "&8→ &7Ilość członków&8: &e+6",
+                                                                            "&8→ &7Ilość członków&8: &e18",
                                                                             "&7"
                                                                     )
                                                             ))
                                                             .glow(false)
                                                             .build())
-                                                    .cost(20)
+                                                    .cost(60)
                                                     .costType(CostType.ITEM)
                                                     .build())
 
@@ -372,9 +401,11 @@ public class UpgradesConfig extends GetConfig {
                                                     .itemStack(ItemBuilder.create(Material.BOOK, "", true))
                                                     .item(Item.builder()
                                                             .material(Material.IRON_SWORD)
-                                                            .displayname("&8⬛ #ffd573ᴘᴏᴢɪᴏᴍ 1")
+                                                            .displayname("&8⬛ #ffd573ᴘᴏᴢɪᴏᴍ 0")
                                                             .lore(new ArrayList<>(
                                                                     List.of(
+                                                                            "",
+                                                                            "&7Aktualna bonus: &f0%",
                                                                             "",
                                                                             "&7Co otrzymasz&8:",
                                                                             "&8→ &7Dodatkowe punkty&8: &e5%",
@@ -388,13 +419,15 @@ public class UpgradesConfig extends GetConfig {
                                                             .build())
                                                     .build(),
                                             1, UpgradeCost.builder()
-                                                    .boostValue(0.1)
+                                                    .boostValue(0.05)
                                                     .itemStack(ItemBuilder.create(Material.BOOK, "XYZ", true))
                                                     .item(Item.builder()
                                                             .material(Material.IRON_SWORD)
                                                             .displayname("&8⬛ #ffd573ᴘᴏᴢɪᴏᴍ 2")
                                                             .lore(new ArrayList<>(
                                                                     List.of(
+                                                                            "",
+                                                                            "&7Aktualna bonus: &f5%",
                                                                             "",
                                                                             "&7Co otrzymasz&8:",
                                                                             "&8→ &7Dodatkowe punkty&8: &e10%",
@@ -410,13 +443,39 @@ public class UpgradesConfig extends GetConfig {
                                                     .costType(CostType.ITEM)
                                                     .build(),
                                             2, UpgradeCost.builder()
-                                                    .boostValue(0.2)
+                                                    .boostValue(0.1)
                                                     .itemStack(ItemBuilder.create(Material.BOOK, "XYZ", true))
                                                     .item(Item.builder()
                                                             .material(Material.IRON_SWORD)
                                                             .displayname("&8⬛ #ffd573ᴘᴏᴢɪᴏᴍ 2")
                                                             .lore(new ArrayList<>(
                                                                     List.of(
+                                                                            "",
+                                                                            "&7Aktualna bonus: &f10%",
+                                                                            "",
+                                                                            "&7Co otrzymasz&8:",
+                                                                            "&8→ &7Dodatkowe punkty&8: &e15%",
+                                                                            "&7",
+                                                                            "&7Aby awansować na kolejny poziom&8:",
+                                                                            "&8→ &f{amount}&8/&7{need-amount}",
+                                                                            "&7"
+                                                                    )
+                                                            ))
+                                                            .glow(false)
+                                                            .build())
+                                                    .cost(20)
+                                                    .costType(CostType.ITEM)
+                                                    .build(),
+                                            3, UpgradeCost.builder()
+                                                    .boostValue(0.15)
+                                                    .itemStack(ItemBuilder.create(Material.BOOK, "XYZ", true))
+                                                    .item(Item.builder()
+                                                            .material(Material.IRON_SWORD)
+                                                            .displayname("&8⬛ #ffd573ᴘᴏᴢɪᴏᴍ 3")
+                                                            .lore(new ArrayList<>(
+                                                                    List.of(
+                                                                            "",
+                                                                            "&7Aktualna bonus: &f15%",
                                                                             "",
                                                                             "&7Co otrzymasz&8:",
                                                                             "&8→ &7Dodatkowe punkty&8: &e20%",
@@ -428,17 +487,43 @@ public class UpgradesConfig extends GetConfig {
                                                             ))
                                                             .glow(false)
                                                             .build())
-                                                    .cost(10)
+                                                    .cost(30)
                                                     .costType(CostType.ITEM)
                                                     .build(),
-                                            3, UpgradeCost.builder()
-                                                    .boostValue(0.3)
+                                            4, UpgradeCost.builder()
+                                                    .boostValue(0.2)
                                                     .itemStack(ItemBuilder.create(Material.BOOK, "XYZ", true))
                                                     .item(Item.builder()
                                                             .material(Material.IRON_SWORD)
-                                                            .displayname("&8⬛ #ffd573ᴘᴏᴢɪᴏᴍ 3")
+                                                            .displayname("&8⬛ #ffd573ᴘᴏᴢɪᴏᴍ 4")
                                                             .lore(new ArrayList<>(
                                                                     List.of(
+                                                                            "",
+                                                                            "&7Aktualna bonus: &f20%",
+                                                                            "",
+                                                                            "&7Co otrzymasz&8:",
+                                                                            "&8→ &7Dodatkowe punkty&8: &e25%",
+                                                                            "&7",
+                                                                            "&7Aby awansować na kolejny poziom&8:",
+                                                                            "&8→ &f{amount}&8/&7{need-amount}",
+                                                                            "&7"
+                                                                    )
+                                                            ))
+                                                            .glow(false)
+                                                            .build())
+                                                    .cost(40)
+                                                    .costType(CostType.ITEM)
+                                                    .build(),
+                                            5, UpgradeCost.builder()
+                                                    .boostValue(0.25)
+                                                    .itemStack(ItemBuilder.create(Material.BOOK, "XYZ", true))
+                                                    .item(Item.builder()
+                                                            .material(Material.IRON_SWORD)
+                                                            .displayname("&8⬛ #ffd573ᴘᴏᴢɪᴏᴍ 5")
+                                                            .lore(new ArrayList<>(
+                                                                    List.of(
+                                                                            "",
+                                                                            "&7Aktualna bonus: &f25%",
                                                                             "",
                                                                             "&7Co otrzymasz&8:",
                                                                             "&8→ &7Dodatkowe punkty&8: &e30%",
@@ -450,55 +535,11 @@ public class UpgradesConfig extends GetConfig {
                                                             ))
                                                             .glow(false)
                                                             .build())
-                                                    .cost(10)
-                                                    .costType(CostType.ITEM)
-                                                    .build(),
-                                            4, UpgradeCost.builder()
-                                                    .boostValue(0.4)
-                                                    .itemStack(ItemBuilder.create(Material.BOOK, "XYZ", true))
-                                                    .item(Item.builder()
-                                                            .material(Material.IRON_SWORD)
-                                                            .displayname("&8⬛ #ffd573ᴘᴏᴢɪᴏᴍ 4")
-                                                            .lore(new ArrayList<>(
-                                                                    List.of(
-                                                                            "",
-                                                                            "&7Co otrzymasz&8:",
-                                                                            "&8→ &7Dodatkowe punkty&8: &e40%",
-                                                                            "&7",
-                                                                            "&7Aby awansować na kolejny poziom&8:",
-                                                                            "&8→ &f{amount}&8/&7{need-amount}",
-                                                                            "&7"
-                                                                    )
-                                                            ))
-                                                            .glow(false)
-                                                            .build())
-                                                    .cost(10)
-                                                    .costType(CostType.ITEM)
-                                                    .build(),
-                                            5, UpgradeCost.builder()
-                                                    .boostValue(0.5)
-                                                    .itemStack(ItemBuilder.create(Material.BOOK, "XYZ", true))
-                                                    .item(Item.builder()
-                                                            .material(Material.IRON_SWORD)
-                                                            .displayname("&8⬛ #ffd573ᴘᴏᴢɪᴏᴍ 5")
-                                                            .lore(new ArrayList<>(
-                                                                    List.of(
-                                                                            "",
-                                                                            "&7Co otrzymasz&8:",
-                                                                            "&8→ &7Dodatkowe punkty&8: &e50%",
-                                                                            "&7",
-                                                                            "&7Aby awansować na kolejny poziom&8:",
-                                                                            "&8→ &f{amount}&8/&7{need-amount}",
-                                                                            "&7"
-                                                                    )
-                                                            ))
-                                                            .glow(false)
-                                                            .build())
-                                                    .cost(10)
+                                                    .cost(50)
                                                     .costType(CostType.ITEM)
                                                     .build(),
                                             6, UpgradeCost.builder()
-                                                    .boostValue(0.6)
+                                                    .boostValue(0.3)
                                                     .itemStack(ItemBuilder.create(Material.BOOK, "XYZ", true))
                                                     .item(Item.builder()
                                                             .material(Material.IRON_SWORD)
@@ -507,13 +548,13 @@ public class UpgradesConfig extends GetConfig {
                                                                     List.of(
                                                                             "",
                                                                             "&7Aktualna wartość ulepszenia&8:",
-                                                                            "&8→ &7Dodatkowe punkty&8: &e60%",
+                                                                            "&8→ &7Dodatkowe punkty&8: &e30%",
                                                                             "&7"
                                                                     )
                                                             ))
                                                             .glow(false)
                                                             .build())
-                                                    .cost(20)
+                                                    .cost(60)
                                                     .costType(CostType.ITEM)
                                                     .build())
 

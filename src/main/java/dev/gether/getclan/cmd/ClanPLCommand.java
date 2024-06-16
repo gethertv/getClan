@@ -88,7 +88,7 @@ public class ClanPLCommand {
         plugin.getClanManager().setOwner(owner, target);
     }
 
-    @Execute(name = "ustawlidera ")
+    @Execute(name = "ustawlidera")
     public void setDeputy(@Context Owner owner, @Arg("gracz") Player target) {
         plugin.getClanManager().setDeputy(owner, target);
     }
@@ -203,7 +203,7 @@ public class ClanPLCommand {
     @Execute(name = "admin klan resetuj ulepszenia")
     @Permission("getclan.admin")
     public void adminClanReset(@Context CommandSender sender, @Arg("tag") Clan clan) {
-        clan.getUpgrades().values().forEach(upgrade -> upgrade.reset());
+        clan.getUpgrades().values().forEach(LevelData::reset);
         clanManager.updateItem(clan);
         MessageUtil.sendMessage(sender, "&aPomyślnie zresetowano ulepszenia klanu");
     }

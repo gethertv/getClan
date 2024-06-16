@@ -147,7 +147,7 @@ public class ClanManager {
 
             );
             MessageUtil.sendMessage(target,
-                    fileManager.getLangConfig().getMessage("player-has-no-clan")
+                    fileManager.getLangConfig().getMessage("clan-invitation-received")
                             .replace("{tag}", clan.getTag())
 
             );
@@ -185,32 +185,7 @@ public class ClanManager {
         if(upgradeCost == null)
             return true;
 
-        return upgradeCost.getBoostValue() >= clan.getMembers().size();
-    }
-
-
-    // checking permission and count members
-    public int getMaxMember(Clan clan) {
-        int ownerMax = getUserMaxMember(clan.getOwnerUUID());
-        int deputyOwnerMax = getUserMaxMember(clan.getDeputyOwnerUUID());
-        return Math.max(ownerMax, deputyOwnerMax);
-    }
-
-    private int getUserMaxMember(UUID uuid) {
-        if (uuid == null)
-            return 0;
-
-        Player player = Bukkit.getPlayer(uuid);
-        if (player != null) {
-            Map<String, Integer> permissionLimitMember = fileManager.getConfig().getPermissionLimitMember();
-            for (Map.Entry<String, Integer> permissionData : permissionLimitMember.entrySet()) {
-                String permission = permissionData.getKey();
-                int max = permissionData.getValue();
-                if (player.hasPermission(permission))
-                    return max;
-            }
-        }
-        return 0;
+        return (int) upgradeCost.getBoostValue() < clan.getMembers().size();
     }
 
 

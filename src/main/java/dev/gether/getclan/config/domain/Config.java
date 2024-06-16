@@ -8,8 +8,6 @@ import lombok.Setter;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.Map;
-
 
 @Getter
 @Setter
@@ -23,6 +21,7 @@ public class Config extends GetConfig {
     private int fadeIn = 10;
     private int stay = 40;
     private int fadeOut = 10;
+
     @Comment({"System punktacji", "Points conversion system"})
     private String calcPoints = "{old_rating} + (30 * ({score} - (1 / (1 + pow(10, ({opponent_rating} - {old_rating}) / 400)))))";
     @Comment({"Domyślna ilość punktów dla gracza", "Default points for players"})
@@ -36,8 +35,6 @@ public class Config extends GetConfig {
 
     @Comment({"Czy ma być włączona wiadomość po śmierci", "Enable broadcast message after the death"})
     private boolean deathMessage = true;
-    @Comment({"Limit osób w klanie ", "Clan member limit"})
-    private Map<String, Integer> permissionLimitMember = Map.of("getclan.default", 5);
     @Comment({"System Antiabuse (Nabijanie rankingu)", "Anti-abuse system (Prevent ranking abuse)"})
     private boolean systemAntiabuse = true;
     @Comment({"Co ile sekund nadal mozna zabic tego samego gracza", "Cooldown time in seconds for killing the same player"})

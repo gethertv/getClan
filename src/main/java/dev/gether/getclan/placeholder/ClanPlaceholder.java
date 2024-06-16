@@ -2,13 +2,12 @@ package dev.gether.getclan.placeholder;
 
 import dev.gether.getclan.GetClan;
 import dev.gether.getclan.config.FileManager;
-import dev.gether.getclan.core.clan.ClanManager;
 import dev.gether.getclan.core.clan.Clan;
+import dev.gether.getclan.core.clan.ClanManager;
+import dev.gether.getclan.core.user.User;
 import dev.gether.getclan.ranking.PlayerStat;
 import dev.gether.getclan.ranking.RankType;
-import dev.gether.getclan.core.user.User;
 import dev.gether.getconfig.utils.ColorFixer;
-import dev.gether.getconfig.utils.MessageUtil;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import me.clip.placeholderapi.expansion.Relational;
 import org.bukkit.OfflinePlayer;
@@ -108,12 +107,18 @@ public class ClanPlaceholder extends PlaceholderExpansion implements Relational 
                 case "clan_format_tag":
                     if (!user.hasClan()) return fileManager.getConfig().getNoneTag();
                     return ColorFixer.addColors(fileManager.getConfig().getFormatTag().replace("{tag}", user.getTag()));
+                case "clan_format_tag_upper":
+                    if (!user.hasClan()) return fileManager.getConfig().getNoneTag();
+                    return ColorFixer.addColors(fileManager.getConfig().getFormatTag().replace("{tag}", user.getTag().toUpperCase()));
                 case "clan_points":
                     if (!user.hasClan()) return "";
                     return plugin.getClanManager().getAveragePoint(player);
                 case "clan_tag":
                     if (!user.hasClan()) return "";
                     return user.getTag();
+                case "clan_tag_upper":
+                    if (!user.hasClan()) return "";
+                    return user.getTag().toUpperCase();
                 case "clan_members_size":
                     if (!user.hasClan()) return "0";
 

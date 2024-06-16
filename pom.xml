@@ -6,7 +6,7 @@
 
     <groupId>dev.gether</groupId>
     <artifactId>getClan</artifactId>
-    <version>2.0.2-beta</version>
+    <version>2.0.5-beta</version>
     <packaging>jar</packaging>
 
     <name>getClan</name>
@@ -43,13 +43,25 @@
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
                             <relocations>
+                                <!-- Relocate SnakeYAML -->
                                 <relocation>
                                     <pattern>org.yaml.snakeyaml</pattern>
                                     <shadedPattern>dev.gether.getconfig.snakeyaml</shadedPattern>
                                 </relocation>
+                                <!-- Relocate Jackson Dataformat -->
                                 <relocation>
                                     <pattern>com.fasterxml.jackson.dataformat</pattern>
                                     <shadedPattern>dev.gether.getconfig.dataformat</shadedPattern>
+                                </relocation>
+                                <!-- Relocate Jackson Core -->
+                                <relocation>
+                                    <pattern>com.fasterxml.jackson.core</pattern>
+                                    <shadedPattern>dev.gether.getconfig.jackson.core</shadedPattern>
+                                </relocation>
+                                <!-- Relocate Jackson Databind -->
+                                <relocation>
+                                    <pattern>com.fasterxml.jackson.databind</pattern>
+                                    <shadedPattern>dev.gether.getconfig.jackson.databind</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
@@ -110,6 +122,7 @@
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-yaml</artifactId>
             <version>2.16.0</version>
+<!--            <scope>provided</scope>-->
         </dependency>
 
 
@@ -118,6 +131,7 @@
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
             <version>5.1.0</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>dev.gether</groupId>
@@ -156,13 +170,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.comphenix.protocol</groupId>
-            <artifactId>ProtocolLib</artifactId>
-            <version>5.1.0</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
             <groupId>com.github.MilkBowl</groupId>
             <artifactId>VaultAPI</artifactId>
             <version>1.7.1</version>
@@ -172,7 +179,7 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>RELEASE</version>
-            <scope>compile</scope>
+            <scope>provided</scope>
         </dependency>
 
     </dependencies>

@@ -1,5 +1,6 @@
 package dev.gether.getclan.listener;
 
+import dev.gether.getclan.config.FileManager;
 import dev.gether.getclan.core.clan.Clan;
 import dev.gether.getclan.core.clan.ClanManager;
 import dev.gether.getclan.core.upgrade.LevelData;
@@ -8,8 +9,6 @@ import dev.gether.getclan.core.upgrade.UpgradeManager;
 import dev.gether.getclan.core.upgrade.UpgradeType;
 import dev.gether.getclan.core.user.User;
 import dev.gether.getclan.core.user.UserManager;
-import dev.gether.getconfig.utils.ItemUtil;
-import dev.gether.getconfig.utils.MessageUtil;
 import dev.gether.getconfig.utils.PlayerUtil;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -18,25 +17,38 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.Random;
 
 public class BreakBlockListener implements Listener {
 
     private final UserManager userManager;
     private final ClanManager clanManager;
     private final UpgradeManager upgradeManager;
+    private final FileManager fileManager;
     private final Random random = new Random();
 
-    public BreakBlockListener(UserManager userManager, ClanManager clanManager, UpgradeManager upgradeManager) {
+    public BreakBlockListener(UserManager userManager, ClanManager clanManager, UpgradeManager upgradeManager, FileManager fileManager) {
         this.userManager = userManager;
         this.clanManager = clanManager;
         this.upgradeManager = upgradeManager;
+        this.fileManager = fileManager;
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onBreakBlock(BlockBreakEvent event) {
         if(event.isCancelled())
             return;
+
+        if(fileManager.getUpgradesConfig().getWhitelistMaterial().isEmpty())
+            return;
+
+        // if not exists at the whitelist than ignore this blok
+        if(!fileManager.getUpgradesConfig().getWhitelistMaterial().contains(event.getBlock().getType()))
+            return;
+
 
         Player player = event.getPlayer();
         Optional<User> userByPlayer = userManager.findUserByPlayer(player);

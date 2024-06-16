@@ -18,7 +18,7 @@ public class IncognitoAddon {
             Class<?> getIncognitoClazz = NMSReflection.getClass("dev.gether.getincognito.GetIncognito");
             Plugin plugin = Bukkit.getServer().getPluginManager().getPlugin("getIncognito");
 
-            if (getIncognitoClazz.isInstance(plugin)) {
+            if (getIncognitoClazz != null && getIncognitoClazz.isInstance(plugin)) {
                 Object getIncognito = getIncognitoClazz.cast(plugin);
                 incognitoEnable = true;
 

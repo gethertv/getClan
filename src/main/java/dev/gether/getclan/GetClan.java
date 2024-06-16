@@ -119,7 +119,7 @@ public final class GetClan extends JavaPlugin {
                 new AsyncPlayerChatListener(this, fileManager, clanManager),
                 new PlayerInteractionEntityListener(fileManager, userManager, cooldownManager),
                 new InventoryClickListener(clanManager, userManager),
-                new BreakBlockListener(userManager, clanManager, upgradeManager)
+                new BreakBlockListener(userManager, clanManager, upgradeManager, fileManager)
         ).forEach(listener -> getServer().getPluginManager().registerEvents(listener, this));
 
 
