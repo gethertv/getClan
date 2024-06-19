@@ -138,30 +138,40 @@ public class ClanPlaceholder extends PlaceholderExpansion implements Relational 
         if (first == null || second == null) return null;
 
         if (identifier.equalsIgnoreCase("tag")) {
-            User user1 = plugin.getUserManager().getUserData().get(first.getUniqueId());
-            User user2 = plugin.getUserManager().getUserData().get(second.getUniqueId());
-
-            if (user1 == null || user2 == null) return null;
-
-            Clan clan1 = clanManager.getClan(user2.getTag());
-            if (clan1 == null) return "";
-
-            String tag = clan1.getTag();
-
-            if (clan1.isMember(first.getUniqueId())) {
-                return ColorFixer.addColors(fileManager.getConfig().getFormatMember().replace("{tag}", String.valueOf(tag)));
-            }
-
-            Clan clan2 = clanManager.getClan(user1.getTag());
-            if (clan2 != null && clan1.isAlliance(clan2.getTag())) {
-                return ColorFixer.addColors(fileManager.getConfig().getFormatAlliance().replace("{tag}", String.valueOf(tag)));
-            }
-
-            return ColorFixer.addColors(fileManager.getConfig().getFormatNormal().replace("{tag}", String.valueOf(tag)));
+            return relTag(first, second, false);
         }
+        if(identifier.equalsIgnoreCase("tag_upper")) {
+            return relTag(first, second, true);
+        }
+
         return null;
     }
 
+    private String relTag(Player first, Player second, boolean upper) {
+        User user1 = plugin.getUserManager().getUserData().get(first.getUniqueId());
+        User user2 = plugin.getUserManager().getUserData().get(second.getUniqueId());
+
+        if (user1 == null || user2 == null) return null;
+
+        Clan clan1 = clanManager.getClan(user2.getTag());
+        if (clan1 == null) return "";
+
+        String tag = clan1.getTag();
+        if(upper) {
+            tag = tag.toUpperCase();
+        }
+
+        if (clan1.isMember(first.getUniqueId())) {
+            return ColorFixer.addColors(fileManager.getConfig().getFormatMember().replace("{tag}", tag));
+        }
+
+        Clan clan2 = clanManager.getClan(user1.getTag());
+        if (clan2 != null && clan1.isAlliance(clan2.getTag())) {
+            return ColorFixer.addColors(fileManager.getConfig().getFormatAlliance().replace("{tag}", tag));
+        }
+
+        return ColorFixer.addColors(fileManager.getConfig().getFormatNormal().replace("{tag}", tag));
+    }
     private boolean isNumber(String arg) {
         try {
             int a = Integer.parseInt(arg);
