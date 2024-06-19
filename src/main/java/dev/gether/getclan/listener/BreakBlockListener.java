@@ -3,10 +3,7 @@ package dev.gether.getclan.listener;
 import dev.gether.getclan.config.FileManager;
 import dev.gether.getclan.core.clan.Clan;
 import dev.gether.getclan.core.clan.ClanManager;
-import dev.gether.getclan.core.upgrade.LevelData;
-import dev.gether.getclan.core.upgrade.UpgradeCost;
-import dev.gether.getclan.core.upgrade.UpgradeManager;
-import dev.gether.getclan.core.upgrade.UpgradeType;
+import dev.gether.getclan.core.upgrade.*;
 import dev.gether.getclan.core.user.User;
 import dev.gether.getclan.core.user.UserManager;
 import dev.gether.getconfig.utils.PlayerUtil;
@@ -42,6 +39,17 @@ public class BreakBlockListener implements Listener {
         if(event.isCancelled())
             return;
 
+        if(!fileManager.getUpgradesConfig().isUpgradeEnable())
+            return;
+
+        Optional<Upgrade> upgradeByType = fileManager.getUpgradesConfig().findUpgradeByType(UpgradeType.DROP_BOOST);
+        if(upgradeByType.isEmpty())
+            return;
+
+        Upgrade upgrade = upgradeByType.get();
+        if(!upgrade.isEnabled())
+            return;
+
         if(fileManager.getUpgradesConfig().getWhitelistMaterial().isEmpty())
             return;
 
@@ -70,6 +78,7 @@ public class BreakBlockListener implements Listener {
         Optional<UpgradeCost> upgradeCostTemp = upgradeManager.findUpgradeCost(UpgradeType.DROP_BOOST, levelData.getLevel());
         if(upgradeCostTemp.isEmpty())
             return;
+
 
         UpgradeCost upgradeCost = upgradeCostTemp.get();
         double boostValue = upgradeCost.getBoostValue();

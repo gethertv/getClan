@@ -24,6 +24,7 @@ import java.util.*;
 @NoArgsConstructor
 public class UpgradesConfig extends GetConfig {
 
+    private boolean upgradeEnable = true;
     private List<Material> whitelistMaterial = new ArrayList<>(List.of(
             Material.STONE,
             Material.DIAMOND_ORE
@@ -59,6 +60,7 @@ public class UpgradesConfig extends GetConfig {
             ))).build();
     private Set<Upgrade> upgrades = new HashSet<>(
             Set.of(Upgrade.builder()
+                                    .enabled(true)
                                     .slot(20)
                                     .upgradeType(UpgradeType.DROP_BOOST)
                                     .upgradesCost(new HashMap<>(Map.of(
@@ -226,6 +228,7 @@ public class UpgradesConfig extends GetConfig {
                                     ))
                             .build(),
                     Upgrade.builder()
+                                    .enabled(true)
                                     .slot(22)
                                     .upgradeType(UpgradeType.MEMBERS)
                                     .upgradesCost(new HashMap<>(Map.of(
@@ -394,6 +397,7 @@ public class UpgradesConfig extends GetConfig {
                                     ))
                             .build(),
                     Upgrade.builder()
+                                    .enabled(true)
                                     .slot(24)
                                     .upgradeType(UpgradeType.POINTS_BOOST)
                                     .upgradesCost(new HashMap<>(Map.of(

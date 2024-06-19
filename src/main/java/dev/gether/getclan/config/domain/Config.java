@@ -8,6 +8,8 @@ import lombok.Setter;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.Map;
+
 
 @Getter
 @Setter
@@ -32,7 +34,6 @@ public class Config extends GetConfig {
     private boolean pvpClan = true;
     @Comment({"Czy ma być włączone pvp dla sojuszników", "Enable alliance PvP"})
     private boolean pvpAlliance = true;
-
     @Comment({"Czy ma być włączona wiadomość po śmierci", "Enable broadcast message after the death"})
     private boolean deathMessage = true;
     @Comment({"System Antiabuse (Nabijanie rankingu)", "Anti-abuse system (Prevent ranking abuse)"})
@@ -50,6 +51,8 @@ public class Config extends GetConfig {
     private int membersRequiredForRanking = 3;
     @Comment("co ma zwracac placeholder gdy klan nie posida tylu czonkow do liczenia pkt")
     private String placeholderNeedMembers = "&eneed 3 users";
+    @Comment({"Limit osób w klanie", "Clan member limit"})
+    public Map<String, Integer> permissionLimitMember = Map.of("getclan.default", 5);
     @Comment({"Ograniczenia długości tagu klanu", "Clan tag length restrictions"})
     private int clansTagLengthMin = 2;
     private int clansTagLengthMax = 6;

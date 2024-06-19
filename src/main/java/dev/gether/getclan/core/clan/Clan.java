@@ -1,9 +1,7 @@
 package dev.gether.getclan.core.clan;
 
-import dev.gether.getclan.GetClan;
 import dev.gether.getclan.config.domain.UpgradesConfig;
 import dev.gether.getclan.core.upgrade.LevelData;
-import dev.gether.getclan.core.upgrade.UpgradeCost;
 import dev.gether.getclan.core.upgrade.UpgradeType;
 import dev.gether.getconfig.utils.ColorFixer;
 import dev.gether.getconfig.utils.MessageUtil;

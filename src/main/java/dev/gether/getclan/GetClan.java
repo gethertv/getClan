@@ -114,7 +114,7 @@ public final class GetClan extends JavaPlugin {
         // listeners
         Stream.of(
                 new PlayerConnectionListener(this, cooldownManager, clanManager),
-                new PlayerDeathListener(this, fileManager),
+                new PlayerDeathListener(this, fileManager, clanManager),
                 new EntityDamageListener(this, fileManager, clanManager),
                 new AsyncPlayerChatListener(this, fileManager, clanManager),
                 new PlayerInteractionEntityListener(fileManager, userManager, cooldownManager),

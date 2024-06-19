@@ -148,7 +148,21 @@ public class ClanPLCommand {
         clanManager.openMenu(player, userByPlayer.get());
     }
 
-    @Execute(name = "admin setitem")
+    @Execute(name = "admin upgrade disable")
+    @Permission("getclan.admin")
+    public void disableUpgrade(@Context CommandSender sender) {
+        fileManager.getUpgradesConfig().setUpgradeEnable(false);
+        MessageUtil.sendMessage(sender, "&cWylaczono ulepszanie klanow!");
+    }
+
+    @Execute(name = "admin ulepszenia on")
+    @Permission("getclan.admin")
+    public void enableUpgrade(@Context CommandSender sender) {
+        fileManager.getUpgradesConfig().setUpgradeEnable(true);
+        MessageUtil.sendMessage(sender, "&aWlaczono ulepszanie klanow!");
+    }
+
+    @Execute(name = "admin ulepszenia off")
     @Permission("getclan.admin")
     public void adminUpgradeItem(@Context Player player, @Arg("typ-ulepszenia") UpgradeType upgradeType, @Arg("poziom") int level) {
         Optional<UpgradeCost> upgradeCostOpt = upgradeManager.findUpgradeCost(upgradeType, level);

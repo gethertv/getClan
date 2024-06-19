@@ -282,9 +282,22 @@ public class ClanENCommand {
     @Permission("getclan.admin")
     public void adminSetPoint(@Context CommandSender sender, @Arg("player") User user, @Arg("points") int points) {
         user.setPoints(points);
-        MessageUtil.sendMessage(sender, "New points set successfully!");
+        MessageUtil.sendMessage(sender, "&aNew points set successfully!");
     }
 
+    @Execute(name = "admin upgrade disable")
+    @Permission("getclan.admin")
+    public void disableUpgrade(@Context CommandSender sender) {
+        fileManager.getUpgradesConfig().setUpgradeEnable(false);
+        MessageUtil.sendMessage(sender, "&cDisabled the clan upgrade");
+    }
+
+    @Execute(name = "admin upgrade enable")
+    @Permission("getclan.admin")
+    public void enableUpgrade(@Context CommandSender sender) {
+        fileManager.getUpgradesConfig().setUpgradeEnable(true);
+        MessageUtil.sendMessage(sender, "&aEnabled the clan upgrade");
+    }
     @Execute(name = "admin set upgrade")
     @Permission("getclan.admin")
     public void adminSetUpgrade(@Context CommandSender sender, @Arg("tag") Clan clan, @Arg("type") UpgradeType upgradeType, @Arg("level") int level) {

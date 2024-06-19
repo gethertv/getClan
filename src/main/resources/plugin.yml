@@ -2,7 +2,7 @@ name: getClan
 version: '${project.version}'
 main: dev.gether.getclan.GetClan
 api-version: 1.16
-softdepend: [Vault, CMI, PlaceholderAPI, getLicense, getIncognito]
+softdepend: [Vault, CMI, PlaceholderAPI, getLicense, getIncognito, LPC]
 libraries:
   - com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.0
   - com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.13.0

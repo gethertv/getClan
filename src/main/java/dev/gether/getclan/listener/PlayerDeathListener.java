@@ -3,6 +3,7 @@ package dev.gether.getclan.listener;
 import dev.gether.getclan.GetClan;
 import dev.gether.getclan.config.FileManager;
 import dev.gether.getclan.core.clan.Clan;
+import dev.gether.getclan.core.clan.ClanManager;
 import dev.gether.getclan.core.upgrade.LevelData;
 import dev.gether.getclan.core.upgrade.Upgrade;
 import dev.gether.getclan.core.upgrade.UpgradeCost;
@@ -35,6 +36,7 @@ public class PlayerDeathListener implements Listener {
 
     private final GetClan plugin;
     private final FileManager fileManager;
+    private final ClanManager clanManager;
     private HashMap<UUID, AntySystemRank> antySystem = new HashMap<>();
 
     Function powFunction = new Function("pow", 2) {
@@ -45,9 +47,10 @@ public class PlayerDeathListener implements Listener {
     };
 
 
-    public PlayerDeathListener(GetClan plugin, FileManager fileManager) {
+    public PlayerDeathListener(GetClan plugin, FileManager fileManager, ClanManager clanManager) {
         this.plugin = plugin;
         this.fileManager = fileManager;
+        this.clanManager = clanManager;
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -171,8 +174,8 @@ public class PlayerDeathListener implements Listener {
             event.setDeathMessage(
                     ColorFixer.addColors(
                             fileManager.getLangConfig().getMessage("death-info")
-                                    .replace("{victim}", player.getName())
-                                    .replace("{killer}", killer.getName())
+                                    .replace("{victim}", clanManager.getIncognitoName(player))
+                                    .replace("{killer}", clanManager.getIncognitoName(killer))
                                     .replace("{victim-points}", String.valueOf(pointsChangeUserEvent.getPointVictim()))
                                     .replace("{killer-points}", String.valueOf(pointsChangeUserEvent.getPointKiller()))
                     )
@@ -220,6 +223,9 @@ public class PlayerDeathListener implements Listener {
             return points;
 
         Upgrade upgrade = upgradeByType.get();
+        if(!upgrade.isEnabled())
+            return points;
+
         UpgradeCost upgradeCost = upgrade.getUpgradesCost().get(levelData.getLevel());
         if (upgradeCost == null)
             return points;

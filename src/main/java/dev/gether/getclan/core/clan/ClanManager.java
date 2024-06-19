@@ -155,6 +155,10 @@ public class ClanManager {
     }
 
     public void openMenu(Player player, User user) {
+        if(!fileManager.getUpgradesConfig().isUpgradeEnable()) {
+            MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("upgrade-clan-disabled"));
+            return;
+        }
         if(!user.hasClan()) {
             MessageUtil.sendMessage(player, fileManager.getLangConfig().getMessage("player-has-no-clan"));
             return;
@@ -167,11 +171,10 @@ public class ClanManager {
         return user.hasClan();
     }
 
-    private boolean isDeputyOwner(Clan clan, Player player) {
-        return clan.getDeputyOwnerUUID().equals(player.getUniqueId());
-    }
-
     private boolean isLimitMember(Clan clan) {
+        if(!fileManager.getUpgradesConfig().isUpgradeEnable())
+            return clan.getMembers().size()>=getMaxMember(clan);
+
         LevelData levelData = clan.getUpgrades().get(UpgradeType.MEMBERS);
         if(levelData == null)
             return true;
@@ -181,11 +184,39 @@ public class ClanManager {
             return true;
 
         Upgrade upgrade = upgradeByType.get();
+        if(!upgrade.isEnabled()) {
+            return clan.getMembers().size()>=getMaxMember(clan);
+        }
         UpgradeCost upgradeCost = upgrade.getUpgradesCost().get(levelData.getLevel());
         if(upgradeCost == null)
             return true;
 
         return (int) upgradeCost.getBoostValue() < clan.getMembers().size();
+    }
+
+    // checking permission and count members
+    public int getMaxMember(Clan clan) {
+        int ownerMax = getUserMaxMember(clan.getOwnerUUID());
+        int deputyOwnerMax = getUserMaxMember(clan.getDeputyOwnerUUID());
+        return Math.max(ownerMax, deputyOwnerMax);
+    }
+
+    private int getUserMaxMember(UUID uuid) {
+        if(uuid==null)
+            return 0;
+
+        Player player = Bukkit.getPlayer(uuid);
+        if(player!=null) {
+            Map<String, Integer> permissionLimitMember = fileManager.getConfig().permissionLimitMember;
+            for(Map.Entry<String, Integer> permissionData : permissionLimitMember.entrySet())
+            {
+                String permission = permissionData.getKey();
+                int max = permissionData.getValue();
+                if(player.hasPermission(permission))
+                    return max;
+            }
+        }
+        return 0;
     }
 
 
@@ -311,6 +342,9 @@ public class ClanManager {
         joinClanCheckEvent(player, user, clan);
     }
 
+    public String getIncognitoName(Player player) {
+        return incognitoAddon.getIncognitoName(player);
+    }
     private void joinClanCheckEvent(Player player, User user, Clan clan) {
         JoinClanEvent event = new JoinClanEvent(clan, player);
         Bukkit.getPluginManager().callEvent(event);
@@ -434,6 +468,9 @@ public class ClanManager {
     }
     public void updateItem(Clan clan) {
         fileManager.getUpgradesConfig().getUpgrades().forEach(upgrade -> {
+            if(!upgrade.isEnabled())
+                return;
+
             LevelData levelData = clan.getUpgrades().get(upgrade.getUpgradeType());
             if(levelData==null)
                 return;

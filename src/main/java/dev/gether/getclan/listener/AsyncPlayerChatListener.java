@@ -23,7 +23,7 @@ public class AsyncPlayerChatListener implements Listener {
         this.clanManager = clanManager;
     }
 
-    @EventHandler(priority = EventPriority.LOWEST)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onSendMessage(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
         String message = event.getMessage();

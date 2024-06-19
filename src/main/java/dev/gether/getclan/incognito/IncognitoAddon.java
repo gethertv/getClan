@@ -4,6 +4,7 @@ import dev.gether.getclan.utils.NMSReflection;
 import dev.gether.getconfig.utils.ConsoleColor;
 import dev.gether.getconfig.utils.MessageUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import java.lang.reflect.Method;
 import java.util.UUID;
@@ -12,6 +13,7 @@ public class IncognitoAddon {
 
     private boolean incognitoEnable = false;
     private Method isIncognitoMethod;
+    private Method incognitoName;
     private Object userManager;
     public IncognitoAddon() {
         try {
@@ -30,6 +32,7 @@ public class IncognitoAddon {
                 if (userManagerClazz.isInstance(userManager)) {
                     // method
                     isIncognitoMethod = userManagerClazz.getMethod("isIncognito", UUID.class);
+                    incognitoName = userManagerClazz.getMethod("getIncognitoName", UUID.class);
 
                     MessageUtil.logMessage(ConsoleColor.GREEN, " ✔  Addon incognito ");
                 }
@@ -49,6 +52,20 @@ public class IncognitoAddon {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public String getIncognitoName(Player player) {
+        if(!incognitoEnable) {
+            return player.getName();
+        }
+        if(isIncognito(player.getUniqueId())) {
+            try {
+                return (String) incognitoName.invoke(userManager, player.getUniqueId());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return player.getName();
     }
 
 

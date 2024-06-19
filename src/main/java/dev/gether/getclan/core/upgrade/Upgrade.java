@@ -10,6 +10,7 @@ import java.util.Map;
 @AllArgsConstructor
 @Builder
 public class Upgrade {
+    private boolean enabled;
     private int slot;
     private UpgradeType upgradeType;
     private Map<Integer, UpgradeCost> upgradesCost;
