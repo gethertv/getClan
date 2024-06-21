@@ -698,6 +698,9 @@ public class ClanManager {
             return;
 
         Upgrade upgrade = upgradeTypeBySlot.get();
+        if(!upgrade.isEnabled())
+            return;
+
 
         LevelData levelData = clan.getUpgrades().get(upgrade.getUpgradeType());
         if(levelData==null)
