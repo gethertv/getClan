@@ -76,7 +76,7 @@ public class PlayerDeathListener implements Listener {
             if(fileManager.getConfig().isTitleAlert()) {
                 sendTitle(player,
                         fileManager.getLangConfig().getMessage("death-self-inflicted-title"),
-                        fileManager.getLangConfig().getMessage("abuse-victim-title-subtitle")
+                        fileManager.getLangConfig().getMessage("death-self-inflicted-subtitle")
                 );
             }
             event.setDeathMessage(
