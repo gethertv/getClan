@@ -4,6 +4,7 @@ import dev.gether.getclan.config.domain.UpgradesConfig;
 import dev.gether.getclan.core.upgrade.LevelData;
 import dev.gether.getclan.core.upgrade.UpgradeType;
 import dev.gether.getconfig.utils.ColorFixer;
+import dev.gether.getconfig.utils.ItemUtil;
 import dev.gether.getconfig.utils.MessageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -45,9 +46,10 @@ public class Clan {
 
         inventory = Bukkit.createInventory(null, upgradesConfig.getInventoryBase().getSize(), ColorFixer.addColors(upgradesConfig.getInventoryBase().getTitle()));
         upgradesConfig.getInventoryBase().getItemsDecoration().forEach(itemDecoration -> {
-            ItemStack itemStack = itemDecoration.getItemStack();
+            ItemStack itemStack = ItemUtil.hideAttribute(itemDecoration.getItemStack());
             itemDecoration.getSlots().forEach(slot -> inventory.setItem(slot, itemStack));
         });
+
     }
 
     public boolean isAlliance(String tag) {

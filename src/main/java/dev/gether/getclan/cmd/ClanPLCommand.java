@@ -88,7 +88,7 @@ public class ClanPLCommand {
         plugin.getClanManager().setOwner(owner, target);
     }
 
-    @Execute(name = "ustawlidera")
+    @Execute(name = "zastepca")
     public void setDeputy(@Context Owner owner, @Arg("gracz") Player target) {
         plugin.getClanManager().setDeputy(owner, target);
     }

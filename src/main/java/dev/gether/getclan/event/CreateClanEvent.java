@@ -7,11 +7,13 @@ import org.jetbrains.annotations.NotNull;
 
 public class CreateClanEvent extends Event {
     private static final HandlerList HANDLERS = new HandlerList();
+    private String playerName;
     private final Player player;
     private final String tag;
     private boolean isCancelled;
     public CreateClanEvent(Player player, String tag) {
         this.player = player;
+        this.playerName = player.getName();
         this.tag = tag;
         this.isCancelled = false;
     }
@@ -31,6 +33,14 @@ public class CreateClanEvent extends Event {
 
     public void setCancelled(boolean isCancelled) {
         this.isCancelled = isCancelled;
+    }
+
+    public void setPlayerName(String playerName) {
+        this.playerName = playerName;
+    }
+
+    public String getPlayerName() {
+        return playerName;
     }
 
     public Player getPlayer() {

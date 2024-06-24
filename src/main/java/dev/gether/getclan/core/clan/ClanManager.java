@@ -14,7 +14,6 @@ import dev.gether.getclan.cmd.context.domain.Member;
 import dev.gether.getclan.cmd.context.domain.Owner;
 import dev.gether.getclan.core.alliance.AllianceService;
 import dev.gether.getclan.core.user.UserManager;
-import dev.gether.getclan.incognito.IncognitoAddon;
 import dev.gether.getconfig.utils.ColorFixer;
 import dev.gether.getconfig.utils.ConsoleColor;
 import dev.gether.getconfig.utils.ItemUtil;
@@ -39,14 +38,12 @@ public class ClanManager {
     private final AllianceService allianceService;
     private final HashMap<String, Clan> clansData = new HashMap<>();
     private final FileManager fileManager;
-    private final IncognitoAddon incognitoAddon;
 
     public ClanManager(GetClan plugin, ClanService clanService, AllianceService allianceService, FileManager fileManager) {
         this.plugin = plugin;
         this.clanService = clanService;
         this.allianceService = allianceService;
         this.fileManager = fileManager;
-        this.incognitoAddon = new IncognitoAddon();
     }
 
     public void setOwner(Owner owner, Player target) {
@@ -223,6 +220,7 @@ public class ClanManager {
     public void infoClan(Player player, Clan clan) {
         int index = plugin.getRankingManager().findTopClan(clan);
 
+
         String infoMessage = String.join("\n", fileManager.getLangConfig().getMessage("info-clan"));
         infoMessage = infoMessage.replace("{tag}", clan.getTag())
                 .replace("{owner}", getPlayerName(clan.getOwnerUUID()))
@@ -237,14 +235,29 @@ public class ClanManager {
     }
 
 
+    private List<Player> getClanPlayerOnline(Clan clan) {
+        List<Player> onlinePlayers = new ArrayList<>();
+        clan.getMembers().stream().forEach(uuid -> {
+            OfflinePlayer playerOffline = Bukkit.getOfflinePlayer(uuid);
+            if(playerOffline.isOnline()) {
+                onlinePlayers.add(playerOffline.getPlayer());
+            }
+        });
+
+        return onlinePlayers;
+    }
     private String getClanMembers(Clan clan) {
         List<UUID> members = clan.getMembers();
+        List<Player> onlinePlayers = getClanPlayerOnline(clan);
+
+        ClanMembersEvent event = new ClanMembersEvent(onlinePlayers);
+        Bukkit.getPluginManager().callEvent(event);
+
         return members.stream()
                 .map(uuid -> {
                     OfflinePlayer player = Bukkit.getOfflinePlayer(uuid);
-                    boolean incognito = incognitoAddon.isIncognito(player.getUniqueId());
                     String color = fileManager.getConfig().getColorOfflinePlayer();
-                    if(player.isOnline() && !incognito) {
+                    if(player.isOnline() && event.getPlayersOnline().contains(player.getPlayer())) {
                         color = fileManager.getConfig().getColorOnlinePlayer();
                     }
                     return color + player.getName();
@@ -255,12 +268,16 @@ public class ClanManager {
 
     public int countOnlineMember(Clan clan) {
         int online = 0;
-        for (UUID uuid : clan.getMembers()) {
-            if(incognitoAddon.isIncognito(uuid))
-                continue;
+        List<Player> playerOnline = getClanPlayerOnline(clan);
+        ClanMembersEvent event = new ClanMembersEvent(playerOnline);
+        Bukkit.getPluginManager().callEvent(event);
+        if(event.isCancelled())
+            return 0;
 
+
+        for (UUID uuid : clan.getMembers()) {
             Player player = Bukkit.getPlayer(uuid);
-            if (player != null)
+            if (player != null && event.getPlayersOnline().contains(player))
                 online++;
         }
         return online;
@@ -342,9 +359,6 @@ public class ClanManager {
         joinClanCheckEvent(player, user, clan);
     }
 
-    public String getIncognitoName(Player player) {
-        return incognitoAddon.getIncognitoName(player);
-    }
     private void joinClanCheckEvent(Player player, User user, Clan clan) {
         JoinClanEvent event = new JoinClanEvent(clan, player);
         Bukkit.getPluginManager().callEvent(event);
@@ -375,18 +389,18 @@ public class ClanManager {
     private boolean handleDeleteClan(Clan clan, Player player) {
         // null mean the player deleted clan is admin
         if (player == null) {
-            return deleteClan(clan, null);
+            return deleteClan(clan, null, " ");
         }
 
         DeleteClanEvent event = new DeleteClanEvent(player, clan);
         Bukkit.getPluginManager().callEvent(event);
         if (!event.isCancelled()) {
-            return deleteClan(clan, player);
+            return deleteClan(clan, player, event.getPlayerName());
         }
         return false;
     }
 
-    private boolean deleteClan(Clan clan, Player player) {
+    private boolean deleteClan(Clan clan, Player player, String playerName) {
         String tag = clan.getTag();
         ClanManager clansManager = plugin.getClanManager();
         for (UUID uuid : clan.getMembers()) {
@@ -406,7 +420,7 @@ public class ClanManager {
         if (player != null) {
             MessageUtil.broadcast(fileManager.getLangConfig().getMessage("clan-deleted")
                     .replace("{tag}", tag)
-                    .replace("{player}", player.getName())
+                    .replace("{player}", playerName)
             );
         }
         return true;
@@ -460,7 +474,7 @@ public class ClanManager {
             plugin.getRankingManager().addClan(clan);
             MessageUtil.broadcast(fileManager.getLangConfig().getMessage("clan-created")
                     .replace("{tag}", tag)
-                    .replace("{player}", player.getName())
+                    .replace("{player}", event.getPlayerName())
             );
 
         }
@@ -754,7 +768,7 @@ public class ClanManager {
         }
         itemMeta.setLore(ColorFixer.addColors(lore));
         itemStack.setItemMeta(itemMeta);
-        inventory.setItem(slot, itemStack);
+        inventory.setItem(slot, ItemUtil.hideAttribute(itemStack));
     }
 
     private String getFormattedNumber(double number) {

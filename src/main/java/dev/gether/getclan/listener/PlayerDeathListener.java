@@ -8,6 +8,7 @@ import dev.gether.getclan.core.upgrade.LevelData;
 import dev.gether.getclan.core.upgrade.Upgrade;
 import dev.gether.getclan.core.upgrade.UpgradeCost;
 import dev.gether.getclan.core.upgrade.UpgradeType;
+import dev.gether.getclan.event.PlayerNameEvent;
 import dev.gether.getclan.event.PointsChangeUserEvent;
 import dev.gether.getclan.core.user.UserManager;
 import dev.gether.getclan.core.AntySystemRank;
@@ -171,11 +172,17 @@ public class PlayerDeathListener implements Listener {
             if (!fileManager.getConfig().isDeathMessage())
                 return;
 
+            PlayerNameEvent victimEvent = new PlayerNameEvent(player);
+            PlayerNameEvent killerEvent = new PlayerNameEvent(killer);
+
+            Bukkit.getPluginManager().callEvent(victimEvent);
+            Bukkit.getPluginManager().callEvent(killerEvent);
+
             event.setDeathMessage(
                     ColorFixer.addColors(
                             fileManager.getLangConfig().getMessage("death-info")
-                                    .replace("{victim}", clanManager.getIncognitoName(player))
-                                    .replace("{killer}", clanManager.getIncognitoName(killer))
+                                    .replace("{victim}", victimEvent.getPlayerName())
+                                    .replace("{killer}", killerEvent.getPlayerName())
                                     .replace("{victim-points}", String.valueOf(pointsChangeUserEvent.getPointVictim()))
                                     .replace("{killer-points}", String.valueOf(pointsChangeUserEvent.getPointKiller()))
                     )

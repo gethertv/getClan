@@ -1,25 +1,21 @@
 package dev.gether.getclan.event;
 
-import dev.gether.getclan.core.clan.Clan;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
 
-public class DeleteDeputyEvent extends Event {
-
+public class ClanMembersEvent extends Event {
     private static final HandlerList HANDLERS = new HandlerList();
-    private final Clan clan;
-
-    private final UUID removedDeputyUUID;
+    private List<Player> playersOnline = new ArrayList<>();
     private boolean isCancelled;
-    public DeleteDeputyEvent(Clan clan, UUID removedDeputyUUID) {
-        this.clan = clan;
-        this.removedDeputyUUID = removedDeputyUUID;
+    public ClanMembersEvent(List<Player> playersOnline) {
+        this.playersOnline = playersOnline;
+        this.isCancelled = false;
     }
-
     @Override
     public @NotNull HandlerList getHandlers() {
         return HANDLERS;
@@ -37,12 +33,11 @@ public class DeleteDeputyEvent extends Event {
         this.isCancelled = isCancelled;
     }
 
-    public UUID getRemovedDeputyUUID() {
-        return removedDeputyUUID;
+    public List<Player> getPlayersOnline() {
+        return playersOnline;
     }
 
-    public Clan getClan() {
-        return clan;
+    public void removePlayer(Player player) {
+        this.playersOnline.remove(player);
     }
-
 }
