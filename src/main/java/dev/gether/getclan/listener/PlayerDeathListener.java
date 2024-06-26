@@ -54,7 +54,7 @@ public class PlayerDeathListener implements Listener {
         this.clanManager = clanManager;
     }
 
-    @EventHandler(priority = EventPriority.LOWEST)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onDeath(PlayerDeathEvent event) {
 
         Player player = event.getEntity();

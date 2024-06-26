@@ -89,5 +89,7 @@ public class Config extends GetConfig {
 
     @Comment({"Format do wiadomości wysłanej do sojuszników | {tag} {player}", "Format for messages sent to alliances | {tag} {player}"})
     private String formatAllianceMessage = "#006eff{player} -> ⚐ | #78d4ff{message}";
+
+    private String noneClan = "None";
 }
 

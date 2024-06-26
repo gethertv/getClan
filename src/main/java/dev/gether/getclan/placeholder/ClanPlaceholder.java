@@ -154,7 +154,7 @@ public class ClanPlaceholder extends PlaceholderExpansion implements Relational 
         if (user1 == null || user2 == null) return null;
 
         Clan clan1 = clanManager.getClan(user2.getTag());
-        if (clan1 == null) return "";
+        if (clan1 == null) return fileManager.getConfig().getNoneClan();
 
         String tag = clan1.getTag();
         if(upper) {
