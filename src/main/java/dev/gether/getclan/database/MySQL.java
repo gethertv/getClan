@@ -71,6 +71,11 @@ public class MySQL {
                 while (!queuedQueries.isEmpty() && batchCount < BATCH_LIMIT) {
                     QueuedQuery queuedQuery = queuedQueries.poll();
 
+                    if (queuedQuery == null) {
+                        MessageUtil.logMessage(ConsoleColor.YELLOW, "[MySQL] - Skipped null queuedQuery");
+                        continue;
+                    }
+
                     try (PreparedStatement statement = conn.prepareStatement(queuedQuery.getSql())) {
                         List<Object> parameters = queuedQuery.getParameters();
 

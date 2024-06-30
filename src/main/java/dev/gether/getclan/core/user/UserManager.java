@@ -3,8 +3,11 @@ package dev.gether.getclan.core.user;
 import dev.gether.getclan.GetClan;
 import dev.gether.getclan.core.clan.Clan;
 import dev.gether.getclan.config.FileManager;
+import dev.gether.getclan.event.PlayerInfoMessageEvent;
 import dev.gether.getconfig.utils.ColorFixer;
+import dev.gether.getconfig.utils.ConsoleColor;
 import dev.gether.getconfig.utils.MessageUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;
@@ -54,6 +57,10 @@ public class UserManager {
         users.forEach(user -> {
             if(user.hasClan()) {
                 Clan clan = plugin.getClanManager().getClan(user.getTag());
+                if(clan == null) {
+                    MessageUtil.logMessage(ConsoleColor.RED, "Something is wrong! User has clan "+user.getTag() + ", but the clan doesn't exists!");
+                    return;
+                }
                 if(!clan.isOwner(user.getUuid()))
                     clan.addMember(user.getUuid());
             }
@@ -81,7 +88,16 @@ public class UserManager {
                 .replace("{rank}", String.valueOf(index));
 
 
-        MessageUtil.sendMessage(player, infoMessage);
+        Player target = Bukkit.getPlayer(user.getUuid());
+        if(target == null)
+            return;
+
+        PlayerInfoMessageEvent event = new PlayerInfoMessageEvent(target, infoMessage);
+        Bukkit.getPluginManager().callEvent(event);
+        if(event.isCancelled())
+            return;
+
+        MessageUtil.sendMessage(player, event.getMessage());
     }
 
     public Optional<User> findUserByUUID(UUID uuid) {

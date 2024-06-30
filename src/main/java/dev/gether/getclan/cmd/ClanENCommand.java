@@ -278,6 +278,13 @@ public class ClanENCommand {
         MessageUtil.sendMessage(sender, "&aClan successfully removed!");
     }
 
+    @Execute(name = "admin delete clan")
+    @Permission("getclan.admin")
+    public void adminRemoveByTag(@Context CommandSender sender, @Arg("tag") Clan clan) {
+        plugin.getClanManager().deleteClanByAdmin(clan);
+        MessageUtil.sendMessage(sender, "&aClan successfully removed!");
+    }
+
     @Execute(name = "admin set points")
     @Permission("getclan.admin")
     public void adminSetPoint(@Context CommandSender sender, @Arg("player") User user, @Arg("points") int points) {

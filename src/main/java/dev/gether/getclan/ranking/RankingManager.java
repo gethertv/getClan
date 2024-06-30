@@ -44,7 +44,7 @@ public class RankingManager {
     }
 
     public void updateAll(Collection<User> users) {
-        users.forEach(this::updateUser);
+        new ArrayList<>(users).forEach(this::updateUser);
     }
 
     public int findTopPlayerByName(User user) {

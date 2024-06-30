@@ -6,6 +6,7 @@ import dev.gether.getclan.config.FileManager;
 import dev.gether.getclan.core.clan.Clan;
 import dev.gether.getclan.event.CreateAllianceEvent;
 import dev.gether.getclan.event.DisbandAllianceEvent;
+import dev.gether.getconfig.utils.ConsoleColor;
 import dev.gether.getconfig.utils.MessageUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -28,7 +29,10 @@ public class AllianceManager {
         alliances.forEach((tag1, tag2) -> {
             Clan clan1 = plugin.getClanManager().getClan(tag1);
             Clan clan2 = plugin.getClanManager().getClan(tag2);
-
+            if(clan1 == null || clan2 == null) {
+                MessageUtil.logMessage(ConsoleColor.RED, "Something is wrong! Alliance clan doesn't exists! " +tag1 + " or "+tag2);
+                return;
+            }
             clan1.addAlliance(tag2);
             clan2.addAlliance(tag1);
         });

@@ -378,12 +378,9 @@ public class ClanManager {
         handleDeleteClan(clan, player);
     }
 
-    public void deleteClanByAdmin(CommandSender sender, Clan clan) {
+    public void deleteClanByAdmin(Clan clan) {
         // call event and delete clan
-        boolean isDeleted = handleDeleteClan(clan, null);
-        if (isDeleted)
-            MessageUtil.sendMessage(sender, fileManager.getLangConfig().getMessage("admin-clan-deleted"));
-
+        handleDeleteClan(clan, null);
     }
 
     private boolean handleDeleteClan(Clan clan, Player player) {
@@ -692,7 +689,7 @@ public class ClanManager {
     }
 
 
-    public Clan deleteClan(String tag) {
+    private Clan deleteClan(String tag) {
         return clansData.remove(tag);
     }
 
