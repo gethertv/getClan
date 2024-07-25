@@ -65,7 +65,6 @@ public class Config extends GetConfig {
     @Comment({"Placeholder %getclan_user_has_clan% kiedy nie/posiadasz klanu", "Placeholder %getclan_user_has_clan% when you have/not a clan"})
     private String hasNotClan = "false";
     private String hasClan = "true";
-
     @Comment({"Placeholder FORMAT kiedy nie posiadasz TAGU klanu", "Placeholder format when you don't have a clan TAG"})
     private String noneTag = "None";
     @Comment({"Placeholder FORMAT kiedy nie posidasz punktów klanu", "Placeholder format when you don't have clan points"})

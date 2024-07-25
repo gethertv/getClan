@@ -6,7 +6,7 @@
 
     <groupId>dev.gether</groupId>
     <artifactId>getClan</artifactId>
-    <version>2.0.4</version>
+    <version>2.0.5</version>
     <packaging>jar</packaging>
 
     <name>getClan</name>
@@ -62,6 +62,10 @@
                                 <relocation>
                                     <pattern>com.fasterxml.jackson.databind</pattern>
                                     <shadedPattern>dev.gether.getconfig.jackson.databind</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>dev.rollczi</pattern>
+                                    <shadedPattern>dev.gether.shaded</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>

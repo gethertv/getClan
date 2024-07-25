@@ -6,6 +6,7 @@ import dev.gether.getclan.core.user.UserManager;
 import dev.gether.getclan.core.clan.Clan;
 import dev.gether.getclan.core.user.User;
 import dev.gether.getclan.cmd.context.domain.Owner;
+import dev.gether.getconfig.utils.ColorFixer;
 import dev.rollczi.litecommands.argument.Argument;
 import dev.rollczi.litecommands.argument.parser.ParseResult;
 import dev.rollczi.litecommands.argument.resolver.ArgumentResolver;
@@ -35,12 +36,12 @@ public class OwnerArgument extends ArgumentResolver<CommandSender, Owner> {
     protected ParseResult<Owner> parse(Invocation<CommandSender> invocation, Argument<Owner> context, String argument) {
         Player player = Bukkit.getPlayer(argument);
         if (player == null) {
-            return ParseResult.failure(fileManager.getLangConfig().getMessage("player-not-found"));
+            return ParseResult.failure(ColorFixer.addColors(fileManager.getLangConfig().getMessage("player-not-found")));
         }
 
         User user = userManager.getUserData().get(player.getUniqueId());
         if (!user.hasClan()) {
-            return ParseResult.failure(fileManager.getLangConfig().getMessage("player-has-no-clan"));
+            return ParseResult.failure(ColorFixer.addColors(fileManager.getLangConfig().getMessage("player-has-no-clan")));
         }
         Clan clan = clanManager.getClan(user.getTag());
         return ParseResult.success(new Owner(player, clan));

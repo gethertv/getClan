@@ -1,8 +1,10 @@
 package dev.gether.getclan.ranking;
 
+import dev.gether.getclan.GetClan;
 import dev.gether.getclan.core.clan.ClanManager;
 import dev.gether.getclan.core.clan.Clan;
 import dev.gether.getclan.core.user.User;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.*;
 
@@ -11,15 +13,16 @@ public class RankingManager {
     private HashMap<RankType, RankingService> ranking = new HashMap<>();
     private final ClanManager clanManager;
 
-    public RankingManager(ClanManager clanManager) {
+    public RankingManager(ClanManager clanManager, GetClan getClan) {
         this.clanManager = clanManager;
 
         for (RankType rankType : RankType.values()) {
-            ranking.put(rankType, new RankingService());
+            ranking.put(rankType, new RankingService(getClan));
         }
     }
 
     public void updateUser(User user) {
+        if(user==null) return;
         update(RankType.KILLS, user.getUuid(), user.getName(), user.getKills());
         update(RankType.DEATHS, user.getUuid(), user.getName(), user.getDeath());
         update(RankType.USER_POINTS, user.getUuid(), user.getName(), user.getPoints());
@@ -29,6 +32,15 @@ public class RankingManager {
 
         Clan clan = clanManager.getClan(user.getTag());
         addClan(clan);
+    }
+
+    public void sort() {
+        ranking.values().forEach(rankingService -> {
+            synchronized(rankingService.getRankingLock()) {
+                Collections.sort(rankingService.getRanking());
+                Collections.reverse(rankingService.getRanking());
+            }
+        });
     }
 
     public Optional<PlayerStat> findTopPlayerByIndex(RankType rankType, int index) {

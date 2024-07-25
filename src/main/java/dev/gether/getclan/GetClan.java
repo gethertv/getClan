@@ -124,10 +124,11 @@ public final class GetClan extends JavaPlugin {
 
 
         // ranking
-        rankingManager = new RankingManager(clanManager);
+        rankingManager = new RankingManager(clanManager, this );
         Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
             rankingManager.updateAll(userManager.getUserData().values());
-        }, 0, 20L * 5);
+            rankingManager.sort();
+        }, 0, 20L * 30);
 
         Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
             MessageUtil.logMessage(ConsoleColor.GREEN, "Starting update data to mysql...");

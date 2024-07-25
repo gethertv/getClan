@@ -34,7 +34,7 @@ public class UserManager {
             user = new User(player, fileManager.getConfig().getDefaultPoints());
             // add user to system of ranking
             userData.put(player.getUniqueId(), user);
-            userService.createUser(player);
+            userService.createUser(player, user.getPoints());
         }
     }
 

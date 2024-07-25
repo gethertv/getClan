@@ -1,14 +1,34 @@
 package dev.gether.getclan.ranking;
 
+import lombok.Getter;
+import org.bukkit.plugin.java.JavaPlugin;
+
 import java.util.*;
 
 public class RankingService {
-    private List<PlayerStat> ranking = new LinkedList<>();
+
+    private final Map<UUID, PlayerStat> playerStatsMap = new HashMap<>();
+    @Getter
+    private final List<PlayerStat> ranking = new ArrayList<>();
+    private final JavaPlugin plugin;
+    @Getter
+    private final Object rankingLock = new Object();
+
+    public RankingService(JavaPlugin plugin) {
+        this.plugin = plugin;
+    }
+
     public void add(UUID uuid, String name, int value) {
-        remove(uuid);
-        ranking.add(new PlayerStat(uuid, name, value));
-        Collections.sort(ranking);
-        Collections.reverse(ranking);
+        synchronized (rankingLock) {
+            PlayerStat playerStat = playerStatsMap.get(uuid);
+            if (playerStat != null) {
+                playerStat.setValue(value);
+            } else {
+                playerStat = new PlayerStat(uuid, name, value);
+                playerStatsMap.put(uuid, playerStat);
+                ranking.add(playerStat);
+            }
+        }
     }
 
     public void remove(UUID uuid) {

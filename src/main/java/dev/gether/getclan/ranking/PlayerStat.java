@@ -1,10 +1,12 @@
 package dev.gether.getclan.ranking;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.UUID;
 
 @Getter
+@Setter
 public class PlayerStat implements Comparable<PlayerStat>{
     private UUID uuid;
     private String name;

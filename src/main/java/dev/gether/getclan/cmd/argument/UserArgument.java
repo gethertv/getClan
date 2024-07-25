@@ -3,6 +3,7 @@ package dev.gether.getclan.cmd.argument;
 import dev.gether.getclan.config.FileManager;
 import dev.gether.getclan.core.user.UserManager;
 import dev.gether.getclan.core.user.User;
+import dev.gether.getconfig.utils.ColorFixer;
 import dev.rollczi.litecommands.argument.Argument;
 import dev.rollczi.litecommands.argument.parser.ParseResult;
 import dev.rollczi.litecommands.argument.resolver.ArgumentResolver;
@@ -30,7 +31,7 @@ public class UserArgument extends ArgumentResolver<CommandSender, User> {
     protected ParseResult<User> parse(Invocation<CommandSender> invocation, Argument<User> context, String argument) {
         Player player = Bukkit.getPlayer(argument);
         if (player == null) {
-            return ParseResult.failure(fileManager.getLangConfig().getMessage("player-not-found"));
+            return ParseResult.failure(ColorFixer.addColors(fileManager.getLangConfig().getMessage("player-not-found")));
         }
 
         User user = userManager.getUserData().get(player.getUniqueId());

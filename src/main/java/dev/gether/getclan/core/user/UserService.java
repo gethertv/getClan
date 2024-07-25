@@ -47,9 +47,9 @@ public class UserService implements GetTable {
 
     }
 
-    public void createUser(Player player) {
-        String sql = "INSERT INTO " + table + " (uuid, username) VALUES (?, ?)";
-        List<Object> parameters = Arrays.asList(player.getUniqueId().toString(), player.getName());
+    public void createUser(Player player, int points) {
+        String sql = "INSERT INTO " + table + " (uuid, username, points) VALUES (?, ?, ?)";
+        List<Object> parameters = Arrays.asList(player.getUniqueId().toString(), player.getName(), points);
         mySQL.addQueue(new QueuedQuery(sql, parameters));
     }
 
