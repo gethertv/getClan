@@ -8,6 +8,7 @@ import lombok.Setter;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.HashMap;
 import java.util.Map;
 
 
@@ -23,6 +24,9 @@ public class Config extends GetConfig {
     private int fadeIn = 10;
     private int stay = 40;
     private int fadeOut = 10;
+
+    @Comment({"Time in seconds after which a hit counts as a kill", "Czas po ilu sekundach o trafienie zalicza zabojstwo"})
+    private int killCountDuration = 30;
 
     @Comment({"System punktacji", "Points conversion system"})
     private String calcPoints = "{old_rating} + (30 * ({score} - (1 / (1 + pow(10, ({opponent_rating} - {old_rating}) / 400)))))";
@@ -90,5 +94,9 @@ public class Config extends GetConfig {
     private String formatAllianceMessage = "#006eff{player} -> ⚐ | #78d4ff{message}";
 
     private String noneClan = "None";
+
+    private Map<Material, String> translate = new HashMap<>(Map.of(
+            Material.STONE, "Kamień"
+    ));
 }
 

@@ -37,6 +37,7 @@ import dev.gether.getconfig.utils.MessageUtil;
 import dev.rollczi.litecommands.LiteCommands;
 import dev.rollczi.litecommands.bukkit.LiteBukkitFactory;
 import dev.rollczi.litecommands.bukkit.LiteBukkitMessages;
+import lombok.Getter;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -47,6 +48,7 @@ import org.bukkit.scheduler.BukkitScheduler;
 
 import java.util.stream.Stream;
 
+@Getter
 public final class GetClan extends JavaPlugin {
 
 
@@ -114,7 +116,7 @@ public final class GetClan extends JavaPlugin {
         // listeners
         Stream.of(
                 new PlayerConnectionListener(this, cooldownManager, clanManager),
-                new PlayerDeathListener(this, fileManager, clanManager),
+                new PlayerDeathListener(this, fileManager),
                 new EntityDamageListener(this, fileManager, clanManager),
                 new AsyncPlayerChatListener(this, fileManager, clanManager),
                 new PlayerInteractionEntityListener(fileManager, userManager, cooldownManager),
@@ -226,22 +228,4 @@ public final class GetClan extends JavaPlugin {
 
     }
 
-    public RankingManager getRankingManager() {
-        return rankingManager;
-    }
-    public UserManager getUserManager() {
-        return userManager;
-    }
-    public Economy getEconomy() {
-        return economy;
-    }
-    public FileManager getFileManager() {
-        return fileManager;
-    }
-    public ClanManager getClanManager() {
-        return clanManager;
-    }
-    public AllianceManager getAllianceManager() {
-        return allianceManager;
-    }
 }

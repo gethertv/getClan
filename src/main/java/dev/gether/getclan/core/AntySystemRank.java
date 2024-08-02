@@ -1,36 +1,41 @@
 package dev.gether.getclan.core;
 
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+
 import java.util.HashMap;
+import java.util.Map;
 
 public class AntySystemRank {
-    private String ipKiller;
+    private final String killerIp;
+    private final Map<String, Long> cooldowns;
 
-    // key (ip) value (last_death)
-    private HashMap<String, Long> cooldown = new HashMap<>();
-
-    public AntySystemRank(String ipKiller, String ipDeath, int timeSec) {
-        this.ipKiller = ipKiller;
-        this.cooldown.put(ipDeath, System.currentTimeMillis() + (timeSec * 1000L));
+    public AntySystemRank(String killerIp) {
+        this.killerIp = killerIp;
+        this.cooldowns = new HashMap<>();
     }
 
-    public boolean isPlayerKillable(String ipDeath) {
-        Long lastDeath = cooldown.get(ipDeath);
-        if (lastDeath == null)
+    public boolean isPlayerKillable(String victimIp, Player killer) {
+        if (victimIp.equals(killerIp) && killer.hasPermission("getclan.abuse.bypass")) {
             return true;
-
-        return lastDeath <= System.currentTimeMillis();
-    }
-
-    public void addCooldown(String ipDeath, int timeSec) {
-        this.cooldown.put(ipDeath, System.currentTimeMillis() + (timeSec * 1000L));
-    }
-
-    public long getRemainingCooldown(String playerIp) {
+        }
+        Long cooldownEnd = cooldowns.get(victimIp);
         long currentTime = System.currentTimeMillis();
-        Long endTime = cooldown.get(playerIp);
+        boolean killable = cooldownEnd == null || currentTime > cooldownEnd;
 
-        long remainingTime = endTime - currentTime;
+        return killable;
+    }
 
-        return Math.max(remainingTime, 0);
+    public void addCooldown(String victimIp, int cooldownTime) {
+        long newCooldownEnd = System.currentTimeMillis() + (cooldownTime * 1000L);
+        cooldowns.put(victimIp, newCooldownEnd);
+    }
+
+    public long getRemainingCooldown(String victimIp) {
+        Long cooldownEnd = cooldowns.get(victimIp);
+        if (cooldownEnd == null) {
+            return 0;
+        }
+        return Math.max(0, cooldownEnd - System.currentTimeMillis());
     }
 }

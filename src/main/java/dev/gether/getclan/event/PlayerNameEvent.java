@@ -7,15 +7,16 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class PlayerNameEvent extends Event {
     private static final HandlerList HANDLERS = new HandlerList();
     private String playerName;
-    private final Player player;
+    private UUID uuid;
     private boolean isCancelled;
-    public PlayerNameEvent(Player player) {
-        this.playerName = player.getName();
-        this.player = player;
+    public PlayerNameEvent(String playerName, UUID uuid) {
+        this.playerName = playerName;
+        this.uuid = uuid;
         this.isCancelled = false;
     }
     @Override
@@ -39,8 +40,8 @@ public class PlayerNameEvent extends Event {
         return playerName;
     }
 
-    public Player getPlayer() {
-        return player;
+    public UUID getUuid() {
+        return uuid;
     }
 
     public void setPlayerName(String playerName) {

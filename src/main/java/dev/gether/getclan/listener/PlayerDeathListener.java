@@ -2,8 +2,8 @@ package dev.gether.getclan.listener;
 
 import dev.gether.getclan.GetClan;
 import dev.gether.getclan.config.FileManager;
+import dev.gether.getclan.core.LastHitInfo;
 import dev.gether.getclan.core.clan.Clan;
-import dev.gether.getclan.core.clan.ClanManager;
 import dev.gether.getclan.core.upgrade.LevelData;
 import dev.gether.getclan.core.upgrade.Upgrade;
 import dev.gether.getclan.core.upgrade.UpgradeCost;
@@ -16,193 +16,225 @@ import dev.gether.getclan.core.user.User;
 import dev.gether.getclan.utils.SystemPoint;
 import dev.gether.getconfig.utils.ColorFixer;
 import dev.gether.getconfig.utils.MessageUtil;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.title.Title;
 import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
 import net.objecthunter.exp4j.function.Function;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
 
-
 public class PlayerDeathListener implements Listener {
 
     private final GetClan plugin;
     private final FileManager fileManager;
-    private final ClanManager clanManager;
-    private HashMap<UUID, AntySystemRank> antySystem = new HashMap<>();
+    private final HashMap<UUID, AntySystemRank> antySystem = new HashMap<>();
+    private final HashMap<UUID, LastHitInfo> lastHits = new HashMap<>();
 
-    Function powFunction = new Function("pow", 2) {
+    private final Function powFunction = new Function("pow", 2) {
         @Override
         public double apply(double... args) {
             return Math.pow(args[0], args[1]);
         }
     };
 
-
-    public PlayerDeathListener(GetClan plugin, FileManager fileManager, ClanManager clanManager) {
+    public PlayerDeathListener(GetClan plugin, FileManager fileManager) {
         this.plugin = plugin;
         this.fileManager = fileManager;
-        this.clanManager = clanManager;
+    }
+
+    @EventHandler
+    public void onEntityDamage(EntityDamageByEntityEvent event) {
+        if (!(event.getEntity() instanceof Player victim) || !(event.getDamager() instanceof Player attacker)) {
+            return;
+        }
+
+        lastHits.put(victim.getUniqueId(), new LastHitInfo(attacker.getUniqueId(),
+                System.currentTimeMillis() + (fileManager.getConfig().getKillCountDuration() * 1000L),
+                attacker.getInventory().getItemInMainHand()));
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onDeath(PlayerDeathEvent event) {
-
-        Player player = event.getEntity();
-        Player killer = player.getKiller();
+        Player victim = event.getEntity();
+        Player killer = victim.getKiller();
 
         UserManager userManager = plugin.getUserManager();
-        User userDeath = userManager.getUserData().get(player.getUniqueId());
+        User victimUser = userManager.getUserData().get(victim.getUniqueId());
 
-        if (userDeath == null)
+        if (victimUser == null) return;
+
+        victimUser.increaseDeath();
+
+        LastHitInfo lastHitInfo = lastHits.get(victim.getUniqueId());
+        if (killer == null && (lastHitInfo == null || System.currentTimeMillis() >= lastHitInfo.getExpirationTime())) {
+            handleSelfInflictedDeath(victim, event);
             return;
+        }
 
-        // increase death
-        userDeath.increaseDeath();
+        UUID killerUUID = (killer != null) ? killer.getUniqueId() : lastHitInfo.getAttackerUUID();
+        User killerUser = userManager.getUserData().get(killerUUID);
+        if (killerUser == null) return;
 
-        if (killer == null) {
-            // message after the death
-            if (!fileManager.getConfig().isDeathMessage())
-                return;
+        killerUser.increaseKill();
 
-            if(fileManager.getConfig().isTitleAlert()) {
-                sendTitle(player,
-                        fileManager.getLangConfig().getMessage("death-self-inflicted-title"),
-                        fileManager.getLangConfig().getMessage("death-self-inflicted-subtitle")
+        OfflinePlayer offlineKiller = Bukkit.getOfflinePlayer(killerUUID);
+        if (offlineKiller.isOnline() && fileManager.getConfig().isSystemAntiabuse()) {
+            if (handleAntiAbuse(victim, offlineKiller.getPlayer(), event)) return;
+        }
+
+        handlePointsCalculation(victim, offlineKiller, victimUser, killerUser, lastHitInfo, event);
+
+        lastHits.remove(victim.getUniqueId());
+    }
+
+    private void handleSelfInflictedDeath(Player player, PlayerDeathEvent event) {
+        if (!fileManager.getConfig().isDeathMessage()) return;
+
+        if (fileManager.getConfig().isTitleAlert()) {
+            sendTitle(player,
+                    fileManager.getLangConfig().getMessage("death-self-inflicted-title"),
+                    fileManager.getLangConfig().getMessage("death-self-inflicted-subtitle")
+            );
+        }
+        event.setDeathMessage(
+                ColorFixer.addColors(
+                        fileManager.getLangConfig().getMessage("death-self-inflicted")
+                                .replace("{victim}", player.getName())
+                )
+        );
+    }
+
+    private boolean handleAntiAbuse(Player victim, Player killer, PlayerDeathEvent event) {
+        String victimIp = victim.getAddress().getAddress().getHostAddress();
+        String killerIp = killer.getAddress().getAddress().getHostAddress();
+
+        AntySystemRank antySystemRank = antySystem.computeIfAbsent(killer.getUniqueId(),
+                k -> new AntySystemRank(killerIp));
+
+        boolean isKillable = antySystemRank.isPlayerKillable(victimIp, killer);
+
+        if (!isKillable) {
+            if (fileManager.getConfig().isDeathMessage()) {
+                event.setDeathMessage("");
+            }
+            int second = SystemPoint.roundUpToMinutes(antySystemRank.getRemainingCooldown(victimIp));
+
+            if (fileManager.getConfig().isTitleAlert()) {
+                sendTitle(victim,
+                        fileManager.getLangConfig().getMessage("abuse-victim-title"),
+                        fileManager.getLangConfig().getMessage("abuse-victim-subtitle")
+                );
+                sendTitle(killer,
+                        fileManager.getLangConfig().getMessage("abuse-killer-title"),
+                        fileManager.getLangConfig().getMessage("abuse-killer-subtitle")
                 );
             }
-            event.setDeathMessage(
-                    ColorFixer.addColors(
-                            fileManager.getLangConfig().getMessage("death-self-inflicted")
-                                    .replace("{victim}", player.getName())
-                    )
-            );
-            return;
+
+            MessageUtil.sendMessage(killer, fileManager.getLangConfig().getMessage("cooldown-kill").replace("{time}", String.valueOf(second)));
+            return true;
+        } else {
+            antySystemRank.addCooldown(victimIp, fileManager.getConfig().getCooldown());
+            return false;
+        }
+    }
+
+    private void handlePointsCalculation(Player victim, OfflinePlayer killer, User victimUser, User killerUser, LastHitInfo lastHitInfo, PlayerDeathEvent event) {
+        int pointsDeath = calculatePoints(victimUser.getPoints(), killerUser.getPoints(), 0);
+        int pointsKiller = calculatePoints(killerUser.getPoints(), victimUser.getPoints(), 1);
+
+        int deathPointTake = victimUser.getPoints() - pointsDeath;
+        int killerPointAdd = pointsKiller - killerUser.getPoints();
+
+        killerPointAdd = getPointsBoosted(killerUser, killerPointAdd);
+
+        PointsChangeUserEvent pointsChangeUserEvent = new PointsChangeUserEvent(killer.getPlayer(), victim, killerPointAdd, deathPointTake);
+        Bukkit.getPluginManager().callEvent(pointsChangeUserEvent);
+        if (pointsChangeUserEvent.isCancelled()) return;
+
+        if (pointsDeath >= 0) {
+            killerUser.addPoint(pointsChangeUserEvent.getPointKiller());
+            victimUser.takePoint(pointsChangeUserEvent.getPointVictim());
         }
 
-        User userKiller = userManager.getUserData().get(killer.getUniqueId());
-        if (userKiller == null)
-            return;
+        if (!fileManager.getConfig().isDeathMessage()) return;
 
+        updateDeathMessage(victim, killer, killerUser, lastHitInfo, pointsChangeUserEvent, event);
 
-        userKiller.increaseKill();
-
-        if (fileManager.getConfig().isSystemAntiabuse()) {
-            String playerIp = player.getAddress().getAddress().getHostAddress();
-            AntySystemRank antySystemRank = antySystem.get(killer.getUniqueId());
-
-            if (antySystemRank != null) {
-                if (!antySystemRank.isPlayerKillable(playerIp)) {
-                    if (fileManager.getConfig().isDeathMessage()) {
-                        event.setDeathMessage("");
-                    }
-                    int second = SystemPoint.roundUpToMinutes(antySystemRank.getRemainingCooldown(playerIp));
-
-                    // title alert
-                    if(fileManager.getConfig().isTitleAlert()) {
-                        sendTitle(player,
-                                fileManager.getLangConfig().getMessage("abuse-victim-title"),
-                                fileManager.getLangConfig().getMessage("abuse-victim-subtitle")
-                        );
-                        sendTitle(killer,
-                                fileManager.getLangConfig().getMessage("abuse-killer-title"),
-                                fileManager.getLangConfig().getMessage("abuse-killer-subtitle")
-                        );
-                    }
-
-                    MessageUtil.sendMessage(killer, fileManager.getLangConfig().getMessage("cooldown-kill").replace("{time}", String.valueOf(second)));
-                    return;
-                }
-                antySystemRank.addCooldown(playerIp, fileManager.getConfig().getCooldown());
-            } else {
-                antySystem.put(killer.getUniqueId(), new AntySystemRank(
-                        killer.getAddress().getAddress().getHostAddress(),
-                        playerIp,
-                        fileManager.getConfig().getCooldown()
-                ));
-            }
+        if (fileManager.getConfig().isTitleAlert()) {
+            updateTitles(victim, killer, pointsChangeUserEvent);
         }
+    }
 
-        String newPointDeath = fileManager.getConfig().getCalcPoints();
-        String newPointKiller = fileManager.getConfig().getCalcPoints();
+    private int calculatePoints(int oldRating, int opponentRating, int score) {
+        String expression = fileManager.getConfig().getCalcPoints()
+                .replace("{old_rating}", String.valueOf(oldRating))
+                .replace("{opponent_rating}", String.valueOf(opponentRating))
+                .replace("{score}", String.valueOf(score));
 
-        String expressionDeath = newPointDeath
-                .replace("{old_rating}", String.valueOf(userDeath.getPoints()))
-                .replace("{opponent_rating}", String.valueOf(userKiller.getPoints()))
-                .replace("{score}", String.valueOf(0));
-
-        String expressionKiller = newPointKiller
-                .replace("{old_rating}", String.valueOf(userKiller.getPoints()))
-                .replace("{opponent_rating}", String.valueOf(userDeath.getPoints()))
-                .replace("{score}", String.valueOf(1));
-
-        Expression deathPoint = new ExpressionBuilder(expressionDeath).functions(powFunction).build();
-        Expression killerPoint = new ExpressionBuilder(expressionKiller).functions(powFunction).build();
+        Expression pointExpression = new ExpressionBuilder(expression).functions(powFunction).build();
 
         try {
-            int pointsDeath = (int) deathPoint.evaluate();
-            int pointsKiller = (int) killerPoint.evaluate();
-
-            int deathPointTake = userDeath.getPoints() - pointsDeath;
-            int killerPointAdd = pointsKiller - userKiller.getPoints();
-
-            // modify points if he has a clan && boost raking perk
-            killerPointAdd = getPointsBoosted(userKiller, killerPointAdd);
-
-            PointsChangeUserEvent pointsChangeUserEvent = new PointsChangeUserEvent(killer, player, killerPointAdd, deathPointTake);
-            Bukkit.getPluginManager().callEvent(pointsChangeUserEvent);
-            if (pointsChangeUserEvent.isCancelled())
-                return;
-
-            if (pointsDeath >= 0) {
-                userKiller.addPoint(pointsChangeUserEvent.getPointKiller());
-                userDeath.takePoint(pointsChangeUserEvent.getPointVictim());
-            }
-
-            // message after the death
-            if (!fileManager.getConfig().isDeathMessage())
-                return;
-
-            PlayerNameEvent victimEvent = new PlayerNameEvent(player);
-            PlayerNameEvent killerEvent = new PlayerNameEvent(killer);
-
-            Bukkit.getPluginManager().callEvent(victimEvent);
-            Bukkit.getPluginManager().callEvent(killerEvent);
-
-            event.setDeathMessage(
-                    ColorFixer.addColors(
-                            fileManager.getLangConfig().getMessage("death-info")
-                                    .replace("{victim}", victimEvent.getPlayerName())
-                                    .replace("{killer}", killerEvent.getPlayerName())
-                                    .replace("{victim-points}", String.valueOf(pointsChangeUserEvent.getPointVictim()))
-                                    .replace("{killer-points}", String.valueOf(pointsChangeUserEvent.getPointKiller()))
-                    )
-            );
-
-            if(fileManager.getConfig().isTitleAlert()) {
-                sendTitle(killer,
-                        fileManager.getLangConfig().getMessage("killer-title").replace("{killer-points}", String.valueOf(pointsChangeUserEvent.getPointKiller())),
-                        fileManager.getLangConfig().getMessage("killer-subtitle").replace("{killer-points}", String.valueOf(pointsChangeUserEvent.getPointKiller()))
-                );
-
-                sendTitle(player,
-                        fileManager.getLangConfig().getMessage("victim-title").replace("{victim-points}", String.valueOf(pointsChangeUserEvent.getPointVictim())),
-                        fileManager.getLangConfig().getMessage("victim-subtitle").replace("{victim-points}", String.valueOf(pointsChangeUserEvent.getPointVictim()))
-                );
-            }
-
+            return (int) pointExpression.evaluate();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error calculating points", e);
         }
+    }
+
+    private void updateDeathMessage(Player victim, OfflinePlayer killer, User killerUser, LastHitInfo lastHitInfo, PointsChangeUserEvent pointsChangeUserEvent, PlayerDeathEvent event) {
+        PlayerNameEvent victimEvent = new PlayerNameEvent(victim.getName(), victim.getUniqueId());
+        PlayerNameEvent killerEvent = new PlayerNameEvent(killerUser.getName(), killerUser.getUuid());
+
+        Bukkit.getPluginManager().callEvent(victimEvent);
+        Bukkit.getPluginManager().callEvent(killerEvent);
+
+        String killerName = killer.isOnline() ? killerEvent.getPlayerName() : killerUser.getName();
+
+        ItemStack itemStack = lastHitInfo.getItemStack();
+        String weaponName = getWeaponName(itemStack);
+
+        event.setDeathMessage(
+                ColorFixer.addColors(
+                        fileManager.getLangConfig().getMessage("death-info")
+                                .replace("{victim}", victimEvent.getPlayerName())
+                                .replace("{killer}", killerName)
+                                .replace("{victim-points}", String.valueOf(pointsChangeUserEvent.getPointVictim()))
+                                .replace("{killer-points}", String.valueOf(pointsChangeUserEvent.getPointKiller()))
+                                .replace("{weapon}", weaponName)
+                )
+        );
+    }
+
+    private String getWeaponName(ItemStack itemStack) {
+        if (itemStack != null && itemStack.hasItemMeta() && itemStack.getItemMeta().hasDisplayName()) {
+            return itemStack.getItemMeta().getDisplayName();
+        } else if (itemStack != null) {
+            return fileManager.getConfig().getTranslate().getOrDefault(itemStack.getType(), itemStack.getType().name());
+        }
+        return "";
+    }
+
+    private void updateTitles(Player victim, OfflinePlayer killer, PointsChangeUserEvent pointsChangeUserEvent) {
+        if (killer.isOnline()) {
+            sendTitle(killer.getPlayer(),
+                    fileManager.getLangConfig().getMessage("killer-title").replace("{killer-points}", String.valueOf(pointsChangeUserEvent.getPointKiller())),
+                    fileManager.getLangConfig().getMessage("killer-subtitle").replace("{killer-points}", String.valueOf(pointsChangeUserEvent.getPointKiller()))
+            );
+        }
+
+        sendTitle(victim,
+                fileManager.getLangConfig().getMessage("victim-title").replace("{victim-points}", String.valueOf(pointsChangeUserEvent.getPointVictim())),
+                fileManager.getLangConfig().getMessage("victim-subtitle").replace("{victim-points}", String.valueOf(pointsChangeUserEvent.getPointVictim()))
+        );
     }
 
     private void sendTitle(Player player, String title, String subtitle) {
@@ -216,29 +248,18 @@ public class PlayerDeathListener implements Listener {
     }
 
     private int getPointsBoosted(User userKiller, int killerPointAdd) {
-        int points = killerPointAdd;
-        if (!userKiller.hasClan())
-            return points;
+        if (!userKiller.hasClan()) return killerPointAdd;
 
         Clan clan = plugin.getClanManager().getClan(userKiller.getTag());
         LevelData levelData = clan.getUpgrades().get(UpgradeType.POINTS_BOOST);
-        if (levelData == null)
-            return points;
+        if (levelData == null) return killerPointAdd;
 
         Optional<Upgrade> upgradeByType = fileManager.getUpgradesConfig().findUpgradeByType(UpgradeType.POINTS_BOOST);
-        if (upgradeByType.isEmpty())
-            return points;
+        if (upgradeByType.isEmpty() || !upgradeByType.get().isEnabled()) return killerPointAdd;
 
-        Upgrade upgrade = upgradeByType.get();
-        if(!upgrade.isEnabled())
-            return points;
+        UpgradeCost upgradeCost = upgradeByType.get().getUpgradesCost().get(levelData.getLevel());
+        if (upgradeCost == null) return killerPointAdd;
 
-        UpgradeCost upgradeCost = upgrade.getUpgradesCost().get(levelData.getLevel());
-        if (upgradeCost == null)
-            return points;
-
-        return (int) ((1 + upgradeCost.getBoostValue()) * points);
-
+        return (int) ((1 + upgradeCost.getBoostValue()) * killerPointAdd);
     }
-
 }

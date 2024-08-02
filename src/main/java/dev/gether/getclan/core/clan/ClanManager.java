@@ -237,7 +237,7 @@ public class ClanManager {
 
     private List<Player> getClanPlayerOnline(Clan clan) {
         List<Player> onlinePlayers = new ArrayList<>();
-        clan.getMembers().stream().forEach(uuid -> {
+        clan.getMembers().forEach(uuid -> {
             OfflinePlayer playerOffline = Bukkit.getOfflinePlayer(uuid);
             if(playerOffline.isOnline()) {
                 onlinePlayers.add(playerOffline.getPlayer());
@@ -269,15 +269,15 @@ public class ClanManager {
     public int countOnlineMember(Clan clan) {
         int online = 0;
         List<Player> playerOnline = getClanPlayerOnline(clan);
-        ClanMembersEvent event = new ClanMembersEvent(playerOnline);
-        Bukkit.getPluginManager().callEvent(event);
-        if(event.isCancelled())
-            return 0;
-
+//        ClanMembersEvent event = new ClanMembersEvent(playerOnline);
+//        Bukkit.getPluginManager().callEvent(event);
+//        if(event.isCancelled())
+//            return 0;
 
         for (UUID uuid : clan.getMembers()) {
             Player player = Bukkit.getPlayer(uuid);
-            if (player != null && event.getPlayersOnline().contains(player))
+            // event.playerOnline TODO
+            if (player != null && playerOnline.contains(player))
                 online++;
         }
         return online;

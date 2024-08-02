@@ -8,6 +8,7 @@ import dev.gether.getclan.core.user.User;
 import dev.gether.getclan.ranking.PlayerStat;
 import dev.gether.getclan.ranking.RankType;
 import dev.gether.getconfig.utils.ColorFixer;
+import dev.gether.getconfig.utils.MessageUtil;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import me.clip.placeholderapi.expansion.Relational;
 import org.bukkit.OfflinePlayer;
@@ -124,9 +125,11 @@ public class ClanPlaceholder extends PlaceholderExpansion implements Relational 
 
                     return String.valueOf(clan.getMembers().size());
                 case "clan_members_online":
-                    if (!user.hasClan()) return "0";
-
-                    return String.valueOf(plugin.getClanManager().countOnlineMember(clan));
+                    if (!user.hasClan()) {
+                        return "0";
+                    }
+                    int online = plugin.getClanManager().countOnlineMember(clan);
+                    return String.valueOf(online);
             }
             return null;
         }
