@@ -1,25 +1,25 @@
 package dev.gether.getclan.handler;
 
-import dev.gether.getclan.config.Config;
-import dev.gether.getclan.config.lang.LangMessage;
-import dev.gether.getclan.utils.MessageUtil;
-import dev.rollczi.litecommands.command.LiteInvocation;
-import dev.rollczi.litecommands.command.permission.RequiredPermissions;
-import dev.rollczi.litecommands.handle.PermissionHandler;
+import dev.gether.getclan.config.FileManager;
+import dev.gether.getconfig.utils.MessageUtil;
+import dev.rollczi.litecommands.handler.result.ResultHandlerChain;
+import dev.rollczi.litecommands.invocation.Invocation;
+import dev.rollczi.litecommands.permission.MissingPermissions;
+import dev.rollczi.litecommands.permission.MissingPermissionsHandler;
 import org.bukkit.command.CommandSender;
 
-public class PermissionMessage implements PermissionHandler<CommandSender> {
+public class PermissionMessage implements MissingPermissionsHandler<CommandSender> {
 
-    private LangMessage lang;
-    public PermissionMessage(LangMessage lang)
-    {
-        this.lang = lang;
+    private final FileManager fileManager;
+
+    public PermissionMessage(FileManager fileManager) {
+        this.fileManager = fileManager;
     }
+
     @Override
-    public void handle(CommandSender sender, LiteInvocation invocation, RequiredPermissions requiredPermissions) {
-        MessageUtil.sendMessage(sender, lang.langNoPermission
-                .replace("{permission}", String.join(", ", requiredPermissions.getPermissions()))
+    public void handle(Invocation<CommandSender> invocation, MissingPermissions missingPermissions, ResultHandlerChain<CommandSender> resultHandlerChain) {
+        MessageUtil.sendMessage(invocation.sender(), fileManager.getLangConfig().getMessage("no-permission")
+                .replace("{permission}", String.join(", ", missingPermissions.getPermissions()))
         );
     }
-
 }

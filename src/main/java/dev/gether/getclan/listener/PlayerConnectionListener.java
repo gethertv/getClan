@@ -1,9 +1,10 @@
 package dev.gether.getclan.listener;
 
 import dev.gether.getclan.GetClan;
-import dev.gether.getclan.manager.CooldownManager;
-import dev.gether.getclan.model.Clan;
-import dev.gether.getclan.model.User;
+import dev.gether.getclan.core.clan.ClanManager;
+import dev.gether.getclan.core.CooldownManager;
+import dev.gether.getclan.core.clan.Clan;
+import dev.gether.getclan.core.user.User;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -17,10 +18,12 @@ public class PlayerConnectionListener implements Listener {
 
     private final GetClan plugin;
     private final CooldownManager cooldownManager;
+    private final ClanManager clanManager;
 
-    public PlayerConnectionListener(GetClan plugin, CooldownManager cooldownManager) {
+    public PlayerConnectionListener(GetClan plugin, CooldownManager cooldownManager, ClanManager clanManager) {
         this.plugin = plugin;
         this.cooldownManager = cooldownManager;
+        this.clanManager = clanManager;
     }
 
     @EventHandler
@@ -52,7 +55,8 @@ public class PlayerConnectionListener implements Listener {
         if(!user.hasClan())
             return;
 
-        Clan clan = user.getClan();
+
+        Clan clan = clanManager.getClan(user.getTag());
         boolean owner = clan.isOwner(player.getUniqueId());
         if(owner)
             clan.resetInvite();

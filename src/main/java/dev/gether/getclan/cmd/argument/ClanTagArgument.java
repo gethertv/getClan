@@ -1,49 +1,53 @@
 package dev.gether.getclan.cmd.argument;
 
-import dev.gether.getclan.config.Config;
-import dev.gether.getclan.config.lang.LangMessage;
-import dev.gether.getclan.manager.ClanManager;
-import dev.gether.getclan.model.Clan;
-import dev.rollczi.litecommands.argument.ArgumentName;
-import dev.rollczi.litecommands.argument.simple.OneArgument;
-import dev.rollczi.litecommands.command.LiteInvocation;
-import dev.rollczi.litecommands.suggestion.Suggestion;
-import panda.std.Option;
-import panda.std.Result;
+import dev.gether.getclan.config.FileManager;
+import dev.gether.getclan.core.clan.Clan;
+import dev.gether.getclan.core.clan.ClanManager;
+import dev.gether.getconfig.utils.ColorFixer;
+import dev.rollczi.litecommands.argument.Argument;
+import dev.rollczi.litecommands.argument.parser.ParseResult;
+import dev.rollczi.litecommands.argument.resolver.ArgumentResolver;
+import dev.rollczi.litecommands.invocation.Invocation;
+import dev.rollczi.litecommands.suggestion.SuggestionContext;
+import dev.rollczi.litecommands.suggestion.SuggestionResult;
+import org.bukkit.Color;
+import org.bukkit.command.CommandSender;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@ArgumentName("clan")
-public class ClanTagArgument implements OneArgument<Clan> {
+public class ClanTagArgument extends ArgumentResolver<CommandSender, Clan> {
 
     private final ClanManager clansManager;
+    private final FileManager fileManager;
 
-
-    private LangMessage lang;
-
-    public ClanTagArgument(LangMessage lang, ClanManager clansManager) {
-        this.lang = lang;
+    public ClanTagArgument(ClanManager clansManager, FileManager fileManager) {
         this.clansManager = clansManager;
+        this.fileManager = fileManager;
+    }
+
+
+
+    @Override
+    protected ParseResult<Clan> parse(Invocation<CommandSender> invocation, Argument<Clan> context, String argument) {
+        Clan clan = clansManager.getClan(argument);
+        if(clan == null) {
+            return ParseResult.failure(ColorFixer.addColors(fileManager.getLangConfig().getMessage("clan-does-not-exist")));
+        }
+        return ParseResult.success(clan);
     }
 
     @Override
-    public Result<Clan, Object> parse(LiteInvocation invocation, String argument) {
-        return Option.of(this.clansManager.getClan(argument))
-                .toResult(lang.langClanNotExists);
+    public SuggestionResult suggest(Invocation<CommandSender> invocation, Argument<Clan> argument, SuggestionContext context) {
+        List<String> sortedTags = this.clansManager.getClansData().keySet().stream()
+                .sorted()
+                .limit(5)
+                .toList();
+
+        return SuggestionResult.of(sortedTags);
     }
-    @Override
-    public List<Suggestion> suggest(LiteInvocation invocation) {
-        return invocation.lastArgument()
-                .map(text -> this.clansManager.getClansData().keySet()
-                        .stream()
-                        .filter(tag -> tag.toUpperCase().startsWith(text.toUpperCase()))
-                        .sorted()
-                        .limit(5)
-                        .map(Suggestion::of)
-                        .collect(Collectors.toList()))
-                .orElse(Collections.emptyList());
-    }
+
+
 
 }
+

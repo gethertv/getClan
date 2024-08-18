@@ -1,65 +1,58 @@
 package dev.gether.getclan.listener;
 
 import dev.gether.getclan.GetClan;
-import dev.gether.getclan.config.Config;
-import dev.gether.getclan.model.Clan;
-import dev.gether.getclan.model.User;
-import dev.gether.getclan.utils.MessageUtil;
-import io.papermc.paper.event.player.AsyncChatEvent;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
+import dev.gether.getclan.config.FileManager;
+import dev.gether.getclan.core.clan.ClanManager;
+import dev.gether.getclan.core.clan.Clan;
+import dev.gether.getclan.core.user.User;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 public class AsyncPlayerChatListener implements Listener {
 
-    private GetClan plugin;
-    private Config config;
+    private final GetClan plugin;
+    private final FileManager fileManager;
+    private final ClanManager clanManager;
 
-    public AsyncPlayerChatListener(GetClan plugin){
+    public AsyncPlayerChatListener(GetClan plugin, FileManager fileManager, ClanManager clanManager) {
         this.plugin = plugin;
-        this.config = plugin.getConfigPlugin();
+        this.fileManager = fileManager;
+        this.clanManager = clanManager;
     }
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void onSendMessage(AsyncChatEvent event)
-    {
-        Player player = event.getPlayer();
-        Component messageComponent = event.message();
-        if(!(messageComponent instanceof TextComponent))
-            return;
 
-        TextComponent textMessage = (TextComponent) messageComponent;
-        String message = textMessage.content();
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onSendMessage(AsyncPlayerChatEvent event) {
+        Player player = event.getPlayer();
+        String message = event.getMessage();
 
         User user = plugin.getUserManager().getUserData().get(player.getUniqueId());
-        if(!user.hasClan())
+        if (!user.hasClan())
             return;
 
-        Clan clan = user.getClan();
-        if(message.startsWith("!!"))
-        {
+        Clan clan = clanManager.getClan(user.getTag());
+        if (message.startsWith("!!")) {
             event.setCancelled(true);
             message = message.substring(2);
-            if(message.length()==0)
+            if (message.length() == 0)
                 return;
 
-            MessageUtil.sendMessageAlliance(clan, config.formatAllianceMessage
+            clan.broadcast(fileManager.getConfig().getFormatAllianceMessage()
                     .replace("{tag}", clan.getTag())
                     .replace("{message}", message)
                     .replace("{player}", player.getName())
             );
             return;
         }
-        if(message.startsWith("!"))
-        {
+        if (message.startsWith("!")) {
             event.setCancelled(true);
             message = message.substring(1);
-            if(message.length()==0)
+            if (message.length() == 0)
                 return;
 
-            MessageUtil.sendMessage(clan, config.formatClanMessage
+            clan.broadcast(fileManager.getConfig().getFormatClanMessage()
                     .replace("{tag}", clan.getTag())
                     .replace("{message}", message)
                     .replace("{player}", player.getName())
