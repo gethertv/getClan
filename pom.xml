@@ -6,7 +6,7 @@
 
     <groupId>dev.gether</groupId>
     <artifactId>getClan</artifactId>
-    <version>2.0.6</version>
+    <version>3.0-beta</version>
     <packaging>jar</packaging>
 
     <name>getClan</name>
@@ -41,33 +41,22 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <createDependencyReducedPom>false</createDependencyReducedPom>
                             <relocations>
-                                <!-- Relocate SnakeYAML -->
                                 <relocation>
-                                    <pattern>org.yaml.snakeyaml</pattern>
-                                    <shadedPattern>dev.gether.getconfig.snakeyaml</shadedPattern>
-                                </relocation>
-                                <!-- Relocate Jackson Dataformat -->
-                                <relocation>
-                                    <pattern>com.fasterxml.jackson.dataformat</pattern>
-                                    <shadedPattern>dev.gether.getconfig.dataformat</shadedPattern>
-                                </relocation>
-                                <!-- Relocate Jackson Core -->
-                                <relocation>
-                                    <pattern>com.fasterxml.jackson.core</pattern>
-                                    <shadedPattern>dev.gether.getconfig.jackson.core</shadedPattern>
-                                </relocation>
-                                <!-- Relocate Jackson Databind -->
-                                <relocation>
-                                    <pattern>com.fasterxml.jackson.databind</pattern>
-                                    <shadedPattern>dev.gether.getconfig.jackson.databind</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>dev.rollczi</pattern>
-                                    <shadedPattern>dev.gether.shaded</shadedPattern>
+                                    <pattern>dev.gether.getutils</pattern>
+                                    <shadedPattern>dev.gether.getclan.getutils</shadedPattern>
                                 </relocation>
                             </relocations>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludeDefaults>false</excludeDefaults>
+                                    <includes>
+                                        <include>dev/gether/getutils/**</include>
+                                    </includes>
+                                </filter>
+                            </filters>
                         </configuration>
                     </execution>
                 </executions>
@@ -101,40 +90,24 @@
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
         </repository>
-
         <repository>
             <id>dmulloy2-repo</id>
             <url>https://repo.dmulloy2.net/repository/public/</url>
         </repository>
-
     </repositories>
 
     <dependencies>
-
         <dependency>
             <groupId>net.objecthunter</groupId>
             <artifactId>exp4j</artifactId>
             <version>0.4.5</version>
         </dependency>
-
-        <dependency>
-            <groupId>com.fasterxml.jackson.dataformat</groupId>
-            <artifactId>jackson-dataformat-yaml</artifactId>
-            <version>2.16.0</version>
-<!--            <scope>provided</scope>-->
-        </dependency>
-
 <!--        hikariCP-->
         <dependency>
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
             <version>5.1.0</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>dev.gether</groupId>
-            <artifactId>getConfig</artifactId>
-            <version>2.0</version>
         </dependency>
 
         <dependency>
@@ -157,14 +130,19 @@
             <scope>provided</scope>
         </dependency>
 
-
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
             <version>1.18.2-R0.1-SNAPSHOT</version>
-            <!--            <classifier>remapped-mojang</classifier>-->
             <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>io.github.gethertv</groupId>
+            <artifactId>getutils</artifactId>
+            <version>1.0.2</version>
+        </dependency>
+
 
         <dependency>
             <groupId>com.github.MilkBowl</groupId>
@@ -175,7 +153,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>RELEASE</version>
+            <version>1.18.34</version>
             <scope>provided</scope>
         </dependency>
 

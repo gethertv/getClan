@@ -5,10 +5,12 @@ import dev.gether.getclan.config.FileManager;
 import dev.gether.getclan.core.clan.Clan;
 import dev.gether.getclan.core.clan.ClanManager;
 import dev.gether.getclan.core.user.User;
+import dev.gether.getclan.core.user.UserManager;
 import dev.gether.getclan.ranking.PlayerStat;
 import dev.gether.getclan.ranking.RankType;
-import dev.gether.getconfig.utils.ColorFixer;
-import dev.gether.getconfig.utils.MessageUtil;
+import dev.gether.getutils.utils.ColorFixer;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import me.clip.placeholderapi.expansion.Relational;
 import org.bukkit.OfflinePlayer;
@@ -18,37 +20,21 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Optional;
 
 
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ClanPlaceholder extends PlaceholderExpansion implements Relational {
 
-    @Override
-    public @NotNull String getIdentifier() {
-        return "getclan";
-    }
+    GetClan plugin;
+    FileManager fileManager;
+    ClanManager clanManager;
+    UserManager userManager;
 
-    @Override
-    public @NotNull String getAuthor() {
-        return "gethertv";
-    }
-
-    @Override
-    public @NotNull String getVersion() {
-        return "1.0";
-    }
-
-    @Override
-    public boolean persist() {
-        return true;
-    }
-
-    private final GetClan plugin;
-    private final FileManager fileManager;
-    private final ClanManager clanManager;
-
-    public ClanPlaceholder(GetClan plugin, FileManager fileManager, ClanManager clanManager) {
+    public ClanPlaceholder(GetClan plugin, FileManager fileManager, ClanManager clanManager, UserManager userManager) {
         this.plugin = plugin;
         this.fileManager = fileManager;
         this.clanManager = clanManager;
+        this.userManager = userManager;
     }
+
 
     @Override
     public String onRequest(OfflinePlayer offlinePlayer, String identifier) {
@@ -74,10 +60,11 @@ public class ClanPlaceholder extends PlaceholderExpansion implements Relational 
 
         }
         if (identifier.startsWith("user")) {
-            User user = plugin.getUserManager().getUserData().get(player.getUniqueId());
-            if (user == null) {
+            Optional<User> userByPlayer = plugin.getUserManager().findUserByPlayer(player);
+            if (userByPlayer.isEmpty()) {
                 return "";
             }
+            User user = userByPlayer.get();
             switch (identifier.toLowerCase()) {
                 case "user_has_clan":
                     String message = user.hasClan() ? fileManager.getConfig().getHasClan() : fileManager.getConfig().getHasNotClan();
@@ -86,20 +73,26 @@ public class ClanPlaceholder extends PlaceholderExpansion implements Relational 
                     return ColorFixer.addColors(
                             fileManager.getConfig().getFormatUserPoints().replace("{points}", String.valueOf(user.getPoints()))
                     );
+                case "user_position":
+                    int index = plugin.getRankingManager().findTopPlayerByName(user);
+                    return String.valueOf(index);
                 case "user_points":
                     return String.valueOf(user.getPoints());
                 case "user_kills":
                     return String.valueOf(user.getKills());
                 case "user_death":
                     return String.valueOf(user.getDeath());
+                case "user_kd":
+                    return userManager.calculateKD(user);
             }
             return null;
         }
         if (identifier.startsWith("clan")) {
-            User user = plugin.getUserManager().getUserData().get(player.getUniqueId());
-            if (user == null) {
+            Optional<User> userByPlayer = plugin.getUserManager().findUserByPlayer(player);
+            if (userByPlayer.isEmpty()) {
                 return "";
             }
+            User user = userByPlayer.get();
             Clan clan = clanManager.getClan(user.getTag());
             switch (identifier.toLowerCase()) {
                 case "clan_format_points":
@@ -151,10 +144,13 @@ public class ClanPlaceholder extends PlaceholderExpansion implements Relational 
     }
 
     private String relTag(Player first, Player second, boolean upper) {
-        User user1 = plugin.getUserManager().getUserData().get(first.getUniqueId());
-        User user2 = plugin.getUserManager().getUserData().get(second.getUniqueId());
+        Optional<User> firstUserByPlayer = plugin.getUserManager().findUserByPlayer(first);
+        Optional<User> secondUserByPlayer = plugin.getUserManager().findUserByPlayer(second);
 
-        if (user1 == null || user2 == null) return null;
+        if (firstUserByPlayer.isEmpty() || secondUserByPlayer.isEmpty()) return null;
+
+        User user1 = firstUserByPlayer.get();
+        User user2 = secondUserByPlayer.get();
 
         Clan clan1 = clanManager.getClan(user2.getTag());
         if (clan1 == null) return fileManager.getConfig().getNoneClan();
@@ -200,4 +196,25 @@ public class ClanPlaceholder extends PlaceholderExpansion implements Relational 
         }
         return "";
     }
+
+    @Override
+    public @NotNull String getIdentifier() {
+        return "getclan";
+    }
+
+    @Override
+    public @NotNull String getAuthor() {
+        return "gethertv";
+    }
+
+    @Override
+    public @NotNull String getVersion() {
+        return "1.0";
+    }
+
+    @Override
+    public boolean persist() {
+        return true;
+    }
+
 }
